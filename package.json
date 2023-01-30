@@ -1,5 +1,8 @@
 {
   "name": "@kurishutofu/game-module",
+  "author": "kurishutofu",
+  "description": "game module",
+  "private": false, 
   "license": "MIT",
   "version": "0.0.1",
   "main": "dist/index.js",
