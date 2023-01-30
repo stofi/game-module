@@ -1,7 +1,7 @@
-import GameMap from './src/Map/map'
-import MapNode from './src/Map/node'
-import MapGraph from './src/Map/graph'
+import GameMap from './src/Map'
+import { MapDualTile, MapTile } from './src/Map/map'
+import { MapNode,MapGraph } from './src/Map'
 
 export default GameMap
 
-export { MapNode, MapGraph, GameMap }
+export { MapNode, MapGraph, GameMap, MapDualTile, MapTile }
