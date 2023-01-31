@@ -1,6 +1,8 @@
 import { createHash } from '../crypto'
 import MapNode from './node'
 
+import { setSeed, random } from '../seed'
+
 export default class MapGraph {
     getNode(x: number, y: number) {
         for (let i = 0; i < this.nodes.length; i++) {
@@ -91,8 +93,10 @@ export default class MapGraph {
     static createDistributedMapGraph(
         count: number,
         width: number,
-        height: number
+        height: number,
+        seed?: string
     ) {
+        setSeed(seed || 'map')
         const nodes = []
         // evenly distribute nodes in 2d grid space
         // calculate column and row count plus spacing
@@ -144,6 +148,10 @@ export default class MapGraph {
         }
 
         return new MapGraph(nodes)
+    }
+
+    setSeed(seed: string) {
+        setSeed(seed)
     }
 
     constructor(public nodes: MapNode[]) {}
@@ -300,7 +308,7 @@ export default class MapGraph {
 
     public removeRandomConnection() {
         const edges = this.getEdges()
-        const edge = edges[Math.floor(Math.random() * edges.length)]
+        const edge = edges[Math.floor(random() * edges.length)]
 
         if(!edge) return
         if(!edge.node1 || !edge.node2) return
@@ -384,7 +392,7 @@ export default class MapGraph {
 
         const connection =
             crossedConnections[
-                Math.floor(Math.random() * crossedConnections.length)
+                Math.floor(random() * crossedConnections.length)
             ]
         
         if(!connection) return
