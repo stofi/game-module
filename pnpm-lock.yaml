@@ -4,6 +4,7 @@ specifiers:
   '@changesets/cli': ^2.26.0
   '@types/crypto-js': ^4.1.1
   '@types/node': ^16.4.1
+  '@types/seed-random': ^2.2.1
   '@types/three': ^0.148.1
   '@types/uuid': ^9.0.0
   '@typescript-eslint/eslint-plugin': ^5.49.0
@@ -32,6 +33,7 @@ devDependencies:
   '@changesets/cli': 2.26.0
   '@types/crypto-js': 4.1.1
   '@types/node': 16.18.11
+  '@types/seed-random': 2.2.1
   '@types/three': 0.148.1
   '@types/uuid': 9.0.0
   '@typescript-eslint/eslint-plugin': 5.49.0_rsaczafy73x3xqauzesvzbsgzy
@@ -425,6 +427,10 @@ packages:
 
   /@types/normalize-package-data/2.4.1:
     resolution: {integrity: sha512-Gj7cI7z+98M282Tqmp2K5EIsoouUEzbBJhQQzDE3jSIRk6r9gsz0oUokqIUR4u1R3dMHo0pDHM7sNOHyhulypw==}
+    dev: true
+
+  /@types/seed-random/2.2.1:
+    resolution: {integrity: sha512-A7DyRnftEWLEbdrN08XdnEASrT97y7GL/zDKaijo7gbQn05O13f7lDxmgq+SuI4JD7sAqd9XkAR2LDkkzp4s+w==}
     dev: true
 
   /@types/semver/6.2.3:
