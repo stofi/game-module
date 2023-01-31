@@ -91,7 +91,8 @@ export default class GameMap {
     constructor(
         readonly width: number,
         readonly height: number,
-        readonly count: number
+        readonly count: number,
+        seed= 'map'
     ) {
         this.graph = MapGraph.createDefaultMapGraph(this.count)
         // this.graph = MapGraph.createDistributedMapGraph(
@@ -99,6 +100,7 @@ export default class GameMap {
         //   this.width,
         //   this.height,
         // )
+        this.graph.setSeed(seed)
         const center = this.graph.getCenter()
 
         this.graph.translate(
@@ -113,6 +115,9 @@ export default class GameMap {
                 this.tiles.push(tile)
             }
         }
+    }
+    setSeed(seed: string) {
+        this.graph.setSeed(seed)
     }
 
     makeLine(
