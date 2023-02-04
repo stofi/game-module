@@ -49,9 +49,7 @@ export default class MapGraph {
                     const source = nodes[i * height + j]
                     const target = nodes[(i - 1) * height + j]
                     if (source && target) {
-                        source.connections.push(
-                            target
-                        )
+                        source.connections.push(target)
                     }
                 }
 
@@ -59,9 +57,7 @@ export default class MapGraph {
                     const source = nodes[i * height + j]
                     const target = nodes[(i + 1) * height + j]
                     if (source && target) {
-                        source.connections.push(
-                            target
-                        )
+                        source.connections.push(target)
                     }
                 }
 
@@ -69,9 +65,7 @@ export default class MapGraph {
                     const source = nodes[i * height + j]
                     const target = nodes[i * height + j - 1]
                     if (source && target) {
-                        source.connections.push(
-                            target
-                        )
+                        source.connections.push(target)
                     }
                 }
 
@@ -79,9 +73,7 @@ export default class MapGraph {
                     const source = nodes[i * height + j]
                     const target = nodes[i * height + j + 1]
                     if (source && target) {
-                        source.connections.push(
-                            target
-                        )
+                        source.connections.push(target)
                     }
                 }
             }
@@ -213,12 +205,12 @@ export default class MapGraph {
 
     public getClosestNode(node: MapNode) {
         let closestNode = this.nodes[0]
-        if(!closestNode) return null
+        if (!closestNode) return null
         let closestDistance = this.getDistance(closestNode, node)
 
         for (let i = 1; i < this.nodes.length; i++) {
             const other = this.nodes[i]
-            if(!other) continue
+            if (!other) continue
             const distance = this.getDistance(other, node)
 
             if (node === other) {
@@ -235,12 +227,12 @@ export default class MapGraph {
     }
     public getClosestNeighbor(node: MapNode) {
         let closestNode = node.connections[0]
-        if(!closestNode) return null
+        if (!closestNode) return null
         let closestDistance = this.getDistance(closestNode, node)
 
         for (let i = 1; i < node.connections.length; i++) {
             const other = node.connections[i]
-            if(!other) continue
+            if (!other) continue
             const distance = this.getDistance(other, node)
 
             if (distance < closestDistance) {
@@ -310,8 +302,8 @@ export default class MapGraph {
         const edges = this.getEdges()
         const edge = edges[Math.floor(random() * edges.length)]
 
-        if(!edge) return
-        if(!edge.node1 || !edge.node2) return
+        if (!edge) return
+        if (!edge.node1 || !edge.node2) return
 
         if (!this.isTraversableWithoutConnection(edge.node1, edge.node2)) {
             return
@@ -391,12 +383,10 @@ export default class MapGraph {
         }
 
         const connection =
-            crossedConnections[
-                Math.floor(random() * crossedConnections.length)
-            ]
-        
-        if(!connection) return
-        if(!connection.node1 || !connection.node2) return
+            crossedConnections[Math.floor(random() * crossedConnections.length)]
+
+        if (!connection) return
+        if (!connection.node1 || !connection.node2) return
 
         if (
             !this.isTraversableWithoutConnection(
@@ -430,10 +420,7 @@ export default class MapGraph {
             throw new Error('No nodes')
         }
 
-        let mostDistancedNodes: [MapNode, MapNode] = [
-            n1,
-            n2,
-        ]
+        let mostDistancedNodes: [MapNode, MapNode] = [n1, n2]
         let mostDistance = this.getDistance(n1, n2)
 
         for (let i = 0; i < this.nodes.length; i++) {
@@ -457,6 +444,61 @@ export default class MapGraph {
         mostDistancedNodes[1].end = true
 
         return mostDistancedNodes
+    }
+
+    public reconstructPath(
+        cameFrom: Record<string, MapNode>,
+        current: MapNode
+    ): MapNode[] {
+        const totalPath: MapNode[] = [current]
+        let node = cameFrom[current.id]
+        while (node) {
+            current = node
+            totalPath.unshift(current)
+            node = cameFrom[current.id]
+        }
+        return totalPath
+    }
+
+    public AStar(
+        start: MapNode,
+        goal: MapNode,
+        h: (node: MapNode) => number
+    ): MapNode[] {
+        let openSet: MapNode[] = [start]
+        const cameFrom: Record<string, MapNode> = {}
+        const gScore: Record<string, number> = {}
+        gScore[start.id] = 0
+        const fScore: Record<string, number> = {}
+        fScore[start.id] = h(start)
+
+        while (openSet.length > 0) {
+            const current = openSet.sort((a, b) => {
+                const aScore = fScore[a.id] ?? Infinity
+                const bScore = fScore[b.id] ?? Infinity
+                return aScore - bScore
+            })[0]
+
+            if (!current) continue
+
+            if (current.id === goal.id) {
+                return this.reconstructPath(cameFrom, current)
+            }
+            openSet = openSet.filter((node) => node.id !== current.id)
+            for (const neighbor of current.connections) {
+                const score = gScore[current.id] ?? Infinity
+                const tentativeGScore = score + 1
+                if (tentativeGScore < (gScore[neighbor.id] || Infinity)) {
+                    cameFrom[neighbor.id] = current
+                    gScore[neighbor.id] = tentativeGScore
+                    fScore[neighbor.id] = tentativeGScore + h(neighbor)
+                    if (!openSet.find((node) => node.id === neighbor.id)) {
+                        openSet.push(neighbor)
+                    }
+                }
+            }
+        }
+        return []
     }
 
     static toJSON(map: MapGraph) {
@@ -502,19 +544,21 @@ export default class MapGraph {
             if (!connections) return
             for (let i = 0; i < connections.length; i++) {
                 const connection = connections[i]
-                if(!connection) continue
+                if (!connection) continue
                 const connected = nodes[connection]
-                if(!connected) continue
+                if (!connected) continue
                 node.connections.push(connected.node)
             }
         })
 
-        const nodesArray = Object.keys(nodes).map((id) => {
-            const node = nodes[id]
-            if(!node) return
-            return node.node
-        }).filter((node) => !!node) as MapNode[]
-        
+        const nodesArray = Object.keys(nodes)
+            .map((id) => {
+                const node = nodes[id]
+                if (!node) return
+                return node.node
+            })
+            .filter((node) => !!node) as MapNode[]
+
         const map = new MapGraph(nodesArray)
 
         return map

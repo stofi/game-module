@@ -1,7 +1,14 @@
 # game-module
 
+## 0.1.3
+
+### Patch Changes
+
+-   Add AStar
+-   6b6eafc: Added seed
+
 ## 0.1.0
 
 ### Minor Changes
 
-- 6c2f6ec: change exports
+-   6c2f6ec: change exports

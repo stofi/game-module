@@ -8,6 +8,7 @@ export default class MapNode {
     start = false
     end = false
     id = v4()
+    index = 0
     constructor(
         public x: number,
         public y: number,
