@@ -4,6 +4,8 @@ import MapNode from './node'
 import { setSeed, random } from '../seed'
 
 export default class MapGraph {
+    startNode: MapNode | null = null
+    endNode: MapNode | null = null
     getNode(x: number, y: number) {
         for (let i = 0; i < this.nodes.length; i++) {
             const node = this.nodes[i]
@@ -442,6 +444,9 @@ export default class MapGraph {
         }
         mostDistancedNodes[0].start = true
         mostDistancedNodes[1].end = true
+
+        this.startNode = mostDistancedNodes[0]
+        this.endNode = mostDistancedNodes[1]
 
         return mostDistancedNodes
     }
