@@ -1,4 +1,5 @@
 import { createHash } from '../crypto'
+import { random } from '../seed'
 import MapGraph from './graph'
 import MapNode from './node'
 
@@ -444,7 +445,9 @@ export default class GameMap {
             this.iterate(node)
         }
 
-        this.graph.removeRandomConnection()
+        if (random() > 0.8) {
+            this.graph.removeRandomConnection()
+        }
 
         const newHash = this.hash()
 
