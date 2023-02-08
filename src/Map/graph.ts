@@ -88,17 +88,22 @@ export default class MapGraph {
         count: number,
         width: number,
         height: number,
-        seed?: string
+        seed?: string,
+        padding = 1
     ) {
         setSeed(seed || 'map')
         const nodes = []
         // evenly distribute nodes in 2d grid space
         // calculate column and row count plus spacing
-        const columnCount = Math.floor(Math.sqrt(count)) + 1
+        const columnCount = Math.ceil(Math.sqrt(count)) + 1
         const rowCount = Math.ceil(count / columnCount) + 1
         const columnSpacing = width / columnCount
         const rowSpacing = height / rowCount
 
+        const xSize = columnSpacing - padding * 2
+        const ySize = rowSpacing - padding * 2
+
+        // create nodes
         for (let i = 0; i < columnCount; i++) {
             for (let j = 0; j < rowCount; j++) {
                 const node = new MapNode(
@@ -106,11 +111,24 @@ export default class MapGraph {
                     j * rowSpacing + rowSpacing / 2,
                     []
                 )
-                node.x1 = 3
-                node.y1 = 3
+                node.x1 = xSize
+                node.y1 = ySize
                 nodes.push(node)
             }
         }
+
+        // for (let i = 0; i < columnCount; i++) {
+        //     for (let j = 0; j < rowCount; j++) {
+        //         const node = new MapNode(
+        //             i * columnSpacing + columnSpacing / 2,
+        //             j * rowSpacing + rowSpacing / 2,
+        //             []
+        //         )
+        //         node.x1 = 3
+        //         node.y1 = 3
+        //         nodes.push(node)
+        //     }
+        // }
 
         // connect nodes in a grid
         for (let i = 0; i < columnCount; i++) {

@@ -103,7 +103,8 @@ export default class GameMap {
             this.graph = MapGraph.createDistributedMapGraph(
                 this.count,
                 this.width,
-                this.height
+                this.height,
+                this.overlapBuffer
             )
         }
         this.graph.setSeed(seed)
