@@ -30,14 +30,16 @@ export default class MapGraph {
         return false
     }
 
-    static createDefaultMapGraph(count: number) {
+    static createDefaultMapGraph(count: number, padding = 0) {
         const width = Math.floor(Math.sqrt(count))
         const height = Math.ceil(count / width)
         const nodes = []
 
         for (let i = 0; i < width; i++) {
             for (let j = 0; j < height; j++) {
-                const node = new MapNode(i * 4, j * 4, [])
+                const x = i * 4 + 2 + padding
+                const y = j * 4 + 2 + padding
+                const node = new MapNode(x, y, [])
                 node.x1 = 3
                 node.y1 = 3
                 nodes.push(node)
