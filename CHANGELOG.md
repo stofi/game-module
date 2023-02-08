@@ -1,5 +1,11 @@
 # game-module
 
+## 0.2.4
+
+### Patch Changes
+
+-   Add bounds buffer
+
 ## 0.2.3
 
 ### Patch Changes

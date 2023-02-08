@@ -280,7 +280,7 @@ export default class GameMap {
             const x = a.x
             const y = a.y
 
-            if (x < 0 || x >= this.width || y < 0 || y >= this.height) {
+            if (x < 0 || x >= this.width - 1 || y < 0 || y >= this.height - 1) {
                 return false
             }
         }
