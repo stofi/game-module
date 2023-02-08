@@ -1,5 +1,11 @@
 # game-module
 
+## 0.2.3
+
+### Patch Changes
+
+-   Add overlap buffer
+
 ## 0.2.2
 
 ### Patch Changes

@@ -322,7 +322,7 @@ export default class MapGraph {
                 continue
             }
 
-            if (other.overlaps(node)) {
+            if (other.overlaps(node, 2)) {
                 return true
             }
         }

@@ -167,12 +167,12 @@ export default class MapNode {
         }
     }
 
-    public overlaps(node: MapNode) {
+    public overlaps(node: MapNode, buffer = 0) {
         return (
-            this.x + this.x0 - 1 < node.x + node.x1 &&
-            this.x + this.x1 + 1 > node.x + node.x0 &&
-            this.y + this.y0 - 1 < node.y + node.y1 &&
-            this.y + this.y1 + 1 > node.y + node.y0
+            this.x + this.x0 - buffer < node.x + node.x1 &&
+            this.x + this.x1 + buffer > node.x + node.x0 &&
+            this.y + this.y0 - buffer < node.y + node.y1 &&
+            this.y + this.y1 + buffer > node.y + node.y0
         )
     }
 
