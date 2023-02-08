@@ -100,6 +100,8 @@ export default class GameMap {
         if (algorithm === 'default') {
             this.graph = MapGraph.createDefaultMapGraph(
                 this.count,
+                this.width,
+                this.height,
                 this.overlapBuffer
             )
         } else {

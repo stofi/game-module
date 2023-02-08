@@ -30,21 +30,42 @@ export default class MapGraph {
         return false
     }
 
-    static createDefaultMapGraph(count: number, padding = 0) {
-        const width = Math.floor(Math.sqrt(count))
-        const height = Math.ceil(count / width)
+    static createDefaultMapGraph(
+        count: number,
+        width: number,
+        height: number,
+        padding = 1
+    ) {
+        const xWidth = Math.floor(Math.sqrt(count))
+        const yHeight = Math.ceil(count / width)
         const nodes = []
+        const xSize = 3
+        const ySize = 3
 
-        for (let i = 0; i < width; i++) {
-            for (let j = 0; j < height; j++) {
-                const x = i * 4 + 2 + padding
-                const y = j * 4 + 2 + padding
+        const xSpacing = (width - padding * 2) / xWidth
+        const ySpacing = (height - padding * 2) / yHeight
+
+        for (let i = 0; i < xWidth; i++) {
+            for (let j = 0; j < yHeight; j++) {
+                const x = i * xSpacing + xSpacing / 2 + padding
+                const y = j * ySpacing + ySpacing / 2 + padding
                 const node = new MapNode(x, y, [])
-                node.x1 = 3
-                node.y1 = 3
+                node.x1 = xSize
+                node.y1 = ySize
                 nodes.push(node)
             }
         }
+
+        // for (let i = 0; i < width; i++) {
+        //     for (let j = 0; j < height; j++) {
+        //         const x = i * xSize + 2 + padding
+        //         const y = j * ySize + 2 + padding
+        //         const node = new MapNode(x, y, [])
+        //         node.x1 = xSize
+        //         node.y1 = ySize
+        //         nodes.push(node)
+        //     }
+        // }
 
         // connect nodes in a grid
         for (let i = 0; i < width; i++) {
