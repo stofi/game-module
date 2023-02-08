@@ -44,9 +44,9 @@ export default class MapNode {
         return x >= this.x0 && x <= this.x1 && y >= this.y0 && y <= this.y1
     }
 
-    public getArea() {
-        const w = this.x1 - this.x0
-        const h = this.y1 - this.y0
+    public getArea(buffer = 0) {
+        const w = this.x1 - this.x0 + 2 * buffer
+        const h = this.y1 - this.y0 + 2 * buffer
 
         const area = new Array(w * h).fill(0).map((_, i) => ({
             x: this.x + this.x0 + (i % w),
@@ -167,13 +167,19 @@ export default class MapNode {
         }
     }
 
-    public overlaps(node: MapNode, buffer = 0) {
+    public hasPoint(x: number, y: number) {
         return (
-            this.x + this.x0 - buffer < node.x + node.x1 &&
-            this.x + this.x1 + buffer > node.x + node.x0 &&
-            this.y + this.y0 - buffer < node.y + node.y1 &&
-            this.y + this.y1 + buffer > node.y + node.y0
+            x >= this.x + this.x0 &&
+            x <= this.x + this.x1 &&
+            y >= this.y + this.y0 &&
+            y <= this.y + this.y1
         )
+    }
+
+    public overlaps(node: MapNode, buffer = 0) {
+        const points = this.getArea(buffer)
+
+        return points.some((p) => node.hasPoint(p.x, p.y))
     }
 
     public hash() {

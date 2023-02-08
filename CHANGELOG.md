@@ -1,5 +1,11 @@
 # game-module
 
+## 0.2.6
+
+### Patch Changes
+
+-   fix buffers
+
 ## 0.2.5
 
 ### Patch Changes
