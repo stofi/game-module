@@ -42,8 +42,8 @@ export default class MapGraph {
         const xSize = 3
         const ySize = 3
 
-        const xSpacing = (width - padding * 2) / xWidth
-        const ySpacing = (height - padding * 2) / yHeight
+        const xSpacing = (width - padding * 2 - xSize * width) / xWidth
+        const ySpacing = (height - padding * 2 - ySize * height) / yHeight
 
         for (let i = 0; i < xWidth; i++) {
             for (let j = 0; j < yHeight; j++) {

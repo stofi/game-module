@@ -1,5 +1,11 @@
 # game-module
 
+## 0.2.10
+
+### Patch Changes
+
+-   idk
+
 ## 0.2.9
 
 ### Patch Changes
