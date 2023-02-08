@@ -10,6 +10,7 @@ type EntracesT = {
     left: EntranceI
     right: EntranceI
 }
+import { randomInt } from '../seed'
 
 export default class MapNode {
     x0 = 0
@@ -84,6 +85,8 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.y0++
+        } else {
+            this.entrances.top.i = randomInt(1, this.y1 - this.y0 - 1)
         }
     }
 
@@ -92,6 +95,8 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.y1--
+        } else {
+            this.entrances.bottom.i = randomInt(1, this.y1 - this.y0 - 1)
         }
     }
 
@@ -100,6 +105,8 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.x0++
+        } else {
+            this.entrances.left.i = randomInt(1, this.x1 - this.x0 - 1)
         }
     }
 
@@ -108,6 +115,8 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.x1--
+        } else {
+            this.entrances.right.i = randomInt(1, this.x1 - this.x0 - 1)
         }
     }
 
@@ -116,6 +125,8 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.y0--
+        } else {
+            this.entrances.top.i = randomInt(1, this.y1 - this.y0 - 1)
         }
     }
 
@@ -124,6 +135,8 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.y1++
+        } else {
+            this.entrances.bottom.i = randomInt(1, this.y1 - this.y0 - 1)
         }
     }
 
@@ -132,6 +145,8 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.x0--
+        } else {
+            this.entrances.left.i = randomInt(1, this.x1 - this.x0 - 1)
         }
     }
 
