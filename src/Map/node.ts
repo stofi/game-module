@@ -86,8 +86,15 @@ export default class MapNode {
         if (this.areaSizeIsLessThanOne()) {
             this.y0++
         } else {
-            this.entrances.top.i = randomInt(1, this.y1 - this.y0 - 1)
+            this.randomizeEntrances()
         }
+    }
+
+    private randomizeEntrances() {
+        this.entrances.left.i = randomInt(1, this.y1 - this.y0 - 1)
+        this.entrances.right.i = randomInt(1, this.y1 - this.y0 - 1)
+        this.entrances.top.i = randomInt(1, this.x1 - this.x0 - 1)
+        this.entrances.bottom.i = randomInt(1, this.x1 - this.x0 - 1)
     }
 
     public addBottom() {
@@ -96,7 +103,7 @@ export default class MapNode {
         if (this.areaSizeIsLessThanOne()) {
             this.y1--
         } else {
-            this.entrances.bottom.i = randomInt(1, this.y1 - this.y0 - 1)
+            this.randomizeEntrances()
         }
     }
 
@@ -106,7 +113,7 @@ export default class MapNode {
         if (this.areaSizeIsLessThanOne()) {
             this.x0++
         } else {
-            this.entrances.left.i = randomInt(1, this.x1 - this.x0 - 1)
+            this.randomizeEntrances()
         }
     }
 
@@ -116,7 +123,7 @@ export default class MapNode {
         if (this.areaSizeIsLessThanOne()) {
             this.x1--
         } else {
-            this.entrances.right.i = randomInt(1, this.x1 - this.x0 - 1)
+            this.randomizeEntrances()
         }
     }
 
@@ -126,7 +133,7 @@ export default class MapNode {
         if (this.areaSizeIsLessThanOne()) {
             this.y0--
         } else {
-            this.entrances.top.i = randomInt(1, this.y1 - this.y0 - 1)
+            this.randomizeEntrances()
         }
     }
 
@@ -136,7 +143,7 @@ export default class MapNode {
         if (this.areaSizeIsLessThanOne()) {
             this.y1++
         } else {
-            this.entrances.bottom.i = randomInt(1, this.y1 - this.y0 - 1)
+            this.randomizeEntrances()
         }
     }
 
@@ -146,7 +153,7 @@ export default class MapNode {
         if (this.areaSizeIsLessThanOne()) {
             this.x0--
         } else {
-            this.entrances.left.i = randomInt(1, this.x1 - this.x0 - 1)
+            this.randomizeEntrances()
         }
     }
 
@@ -155,6 +162,8 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.x1++
+        } else {
+            this.randomizeEntrances()
         }
     }
 

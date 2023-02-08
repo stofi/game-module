@@ -1,5 +1,11 @@
 # game-module
 
+## 0.2.2
+
+### Patch Changes
+
+-   Change paths
+
 ## 0.2.1
 
 ### Patch Changes
