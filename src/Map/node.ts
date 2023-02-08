@@ -1,5 +1,16 @@
 import { createHash } from '../crypto'
 import { v4 } from 'uuid'
+
+interface EntranceI {
+    i: number
+}
+type EntracesT = {
+    top: EntranceI
+    bottom: EntranceI
+    left: EntranceI
+    right: EntranceI
+}
+
 export default class MapNode {
     x0 = 0
     y0 = 0
@@ -9,11 +20,19 @@ export default class MapNode {
     end = false
     id = v4()
     index = 0
+    entrances: EntracesT
     constructor(
         public x: number,
         public y: number,
         public connections: MapNode[]
-    ) {}
+    ) {
+        this.entrances = {
+            top: { i: 1 },
+            bottom: { i: 1 },
+            left: { i: 1 },
+            right: { i: 1 },
+        }
+    }
 
     public translate(x: number, y: number) {
         this.x += x
@@ -137,6 +156,49 @@ export default class MapNode {
         const string = `${this.x},${this.y},${this.x0},${this.y0},${this.x1},${this.y1}`
 
         return createHash(string)
+    }
+
+    public getEntraceDirectionClosestToNode(node: MapNode) {
+        const x = this.x - node.x
+        const y = this.y - node.y
+
+        if (Math.abs(x) > Math.abs(y)) {
+            return x > 0 ? 'left' : 'right'
+        } else {
+            return y > 0 ? 'top' : 'bottom'
+        }
+    }
+
+    public getEntranceCoordinates(
+        direction: 'top' | 'bottom' | 'left' | 'right'
+    ) {
+        const w = this.x1 - this.x0
+        const h = this.y1 - this.y0
+
+        const i = this.entrances[direction].i
+
+        switch (direction) {
+            case 'top':
+                return {
+                    x: this.x + this.x0 + Math.floor(i / h),
+                    y: this.y + this.y0,
+                }
+            case 'bottom':
+                return {
+                    x: this.x + this.x0 + Math.floor(i / h),
+                    y: this.y + this.y1,
+                }
+            case 'left':
+                return {
+                    x: this.x + this.x0,
+                    y: this.y + this.y0 + Math.floor(i / w),
+                }
+            case 'right':
+                return {
+                    x: this.x + this.x1,
+                    y: this.y + this.y0 + Math.floor(i / w),
+                }
+        }
     }
 
     static toJSON(node: MapNode) {

@@ -1,5 +1,17 @@
 # game-module
 
+## 0.2.0
+
+### Minor Changes
+
+-   Improve Paths
+
+## 0.1.5
+
+### Patch Changes
+
+-   Add pathfind
+
 ## 0.1.4
 
 ### Patch Changes

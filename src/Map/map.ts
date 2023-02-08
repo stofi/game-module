@@ -92,7 +92,7 @@ export default class GameMap {
         readonly width: number,
         readonly height: number,
         readonly count: number,
-        seed= 'map'
+        seed = 'map'
     ) {
         this.graph = MapGraph.createDefaultMapGraph(this.count)
         // this.graph = MapGraph.createDistributedMapGraph(
@@ -169,49 +169,19 @@ export default class GameMap {
 
     setTiles() {
         const nodes = this.graph.getNodes()
+        const edges = this.graph.getEdges()
 
         for (const tile of this.tiles) {
             tile.type = 'outside'
             tile.parent = null
         }
 
-        for (let i = 0; i < nodes.length; i++) {
-            const node = nodes[i]
-            if (!node) continue
-            const walls = node.getWalls()
+        this.setWalls(nodes)
+        this.setPaths(edges)
+        this.setInsides(nodes)
+    }
 
-            for (let j = 0; j < walls.length; j++) {
-                const wall = walls[j]
-                if (!wall) continue
-                const x = wall.x
-                const y = wall.y
-                const tile = this.getTile(x, y)
-                if (!tile) continue
-                tile.type = 'wall'
-            }
-        }
-
-        const edges = this.graph.getEdges()
-
-        for (let i = 0; i < edges.length; i++) {
-            const edge = edges[i]
-            if (!edge) continue
-            const node1 = edge.node1
-            const node2 = edge.node2
-            if (!node1 || !node2) continue
-            const points = this.manhattanLine(node1, node2)
-
-            for (let j = 0; j < points.length; j++) {
-                const point = points[j]
-                if (!point) continue
-                const x = point.x
-                const y = point.y
-                const tile = this.getTile(x, y)
-                if (!tile) continue
-                tile.type = 'path'
-            }
-        }
-
+    private setInsides(nodes: MapNode[]) {
         for (let i = 0; i < nodes.length; i++) {
             const node = nodes[i]
             if (!node) continue
@@ -226,6 +196,50 @@ export default class GameMap {
                 if (!tile || tile.type === 'wall') continue
                 tile.type = 'inside'
                 tile.parent = node
+            }
+        }
+    }
+
+    private setPaths(edges: { node1: MapNode; node2: MapNode | undefined }[]) {
+        for (let i = 0; i < edges.length; i++) {
+            const edge = edges[i]
+            if (!edge) continue
+            const node1 = edge.node1
+            const node2 = edge.node2
+            if (!node1 || !node2) continue
+            const entrance1 = node1.getEntraceDirectionClosestToNode(node2)
+            const entrance2 = node2.getEntraceDirectionClosestToNode(node1)
+            const entrancePos1 = node1.getEntranceCoordinates(entrance1)
+            const entrancePos2 = node2.getEntranceCoordinates(entrance2)
+
+            const points = this.manhattanLine(entrancePos1, entrancePos2)
+
+            for (let j = 0; j < points.length; j++) {
+                const point = points[j]
+                if (!point) continue
+                const x = point.x
+                const y = point.y
+                const tile = this.getTile(x, y)
+                if (!tile) continue
+                tile.type = 'path'
+            }
+        }
+    }
+
+    private setWalls(nodes: MapNode[]) {
+        for (let i = 0; i < nodes.length; i++) {
+            const node = nodes[i]
+            if (!node) continue
+            const walls = node.getWalls()
+
+            for (let j = 0; j < walls.length; j++) {
+                const wall = walls[j]
+                if (!wall) continue
+                const x = wall.x
+                const y = wall.y
+                const tile = this.getTile(x, y)
+                if (!tile) continue
+                tile.type = 'wall'
             }
         }
     }

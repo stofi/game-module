@@ -451,59 +451,33 @@ export default class MapGraph {
         return mostDistancedNodes
     }
 
-    public reconstructPath(
-        cameFrom: Record<string, MapNode>,
-        current: MapNode
-    ): MapNode[] {
-        const totalPath: MapNode[] = [current]
-        let node = cameFrom[current.id]
-        while (node) {
-            current = node
-            totalPath.unshift(current)
-            node = cameFrom[current.id]
-        }
-        return totalPath
-    }
-
-    public AStar(
+    public getPath(
         start: MapNode,
-        goal: MapNode,
-        h: (node: MapNode) => number
+        end: MapNode,
+        prev: string[] = []
     ): MapNode[] {
-        let openSet: MapNode[] = [start]
-        const cameFrom: Record<string, MapNode> = {}
-        const gScore: Record<string, number> = {}
-        gScore[start.id] = 0
-        const fScore: Record<string, number> = {}
-        fScore[start.id] = h(start)
+        const visited: string[] = [...prev, start.id]
+        const queue: MapNode[] = start.connections
 
-        while (openSet.length > 0) {
-            const current = openSet.sort((a, b) => {
-                const aScore = fScore[a.id] ?? Infinity
-                const bScore = fScore[b.id] ?? Infinity
-                return aScore - bScore
-            })[0]
-
-            if (!current) continue
-
-            if (current.id === goal.id) {
-                return this.reconstructPath(cameFrom, current)
+        for (const other of queue) {
+            if (!other) continue
+            if (visited.includes(other.id)) continue
+            if (other === end) {
+                return [...visited, other.id].map((id) =>
+                    this.getNodeById(id)
+                ) as MapNode[]
             }
-            openSet = openSet.filter((node) => node.id !== current.id)
-            for (const neighbor of current.connections) {
-                const score = gScore[current.id] ?? Infinity
-                const tentativeGScore = score + 1
-                if (tentativeGScore < (gScore[neighbor.id] || Infinity)) {
-                    cameFrom[neighbor.id] = current
-                    gScore[neighbor.id] = tentativeGScore
-                    fScore[neighbor.id] = tentativeGScore + h(neighbor)
-                    if (!openSet.find((node) => node.id === neighbor.id)) {
-                        openSet.push(neighbor)
-                    }
-                }
+
+            const path = this.getPath(other, end, visited)
+            if (path) {
+                return path
             }
         }
+
         return []
+    }
+    public getNodeById(id: string): MapNode | null {
+        return this.nodes.find((node) => node.id === id) || null
     }
 
     static toJSON(map: MapGraph) {
