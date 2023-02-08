@@ -105,7 +105,7 @@ export default class GameMap {
                 this.count,
                 this.width,
                 this.height,
-                this.overlapBuffer
+                seed
             )
         }
         this.graph.setSeed(seed)
