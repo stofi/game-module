@@ -79,7 +79,7 @@ export class MapDualTile {
         ]
     }
 }
-
+type GameMapAlgorithm = 'default' | 'distributed'
 export default class GameMap {
     graph: MapGraph
     index = 0
@@ -94,14 +94,18 @@ export default class GameMap {
         readonly count: number,
         seed = 'map',
         readonly wallBuffer = 3,
-        readonly overlapBuffer = 3
+        readonly overlapBuffer = 3,
+        algorithm: GameMapAlgorithm = 'default'
     ) {
-        this.graph = MapGraph.createDefaultMapGraph(this.count)
-        // this.graph = MapGraph.createDistributedMapGraph(
-        //   this.count,
-        //   this.width,
-        //   this.height,
-        // )
+        if (algorithm === 'default') {
+            this.graph = MapGraph.createDefaultMapGraph(this.count)
+        } else {
+            this.graph = MapGraph.createDistributedMapGraph(
+                this.count,
+                this.width,
+                this.height
+            )
+        }
         this.graph.setSeed(seed)
         const center = this.graph.getCenter()
 

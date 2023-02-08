@@ -1,5 +1,11 @@
 # game-module
 
+## 0.2.7
+
+### Patch Changes
+
+-   Add algo option
+
 ## 0.2.6
 
 ### Patch Changes
