@@ -314,7 +314,7 @@ export default class MapGraph {
         this.removeConnection(edge.node1, edge.node2)
     }
 
-    public anyNodeOverlaps(node: MapNode) {
+    public anyNodeOverlaps(node: MapNode, buffer = 4) {
         for (let i = 0; i < this.nodes.length; i++) {
             const other = this.nodes[i]
             if (!other) continue
@@ -322,7 +322,7 @@ export default class MapGraph {
                 continue
             }
 
-            if (other.overlaps(node, 2)) {
+            if (other.overlaps(node, buffer)) {
                 return true
             }
         }

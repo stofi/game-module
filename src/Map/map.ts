@@ -92,7 +92,9 @@ export default class GameMap {
         readonly width: number,
         readonly height: number,
         readonly count: number,
-        seed = 'map'
+        seed = 'map',
+        readonly wallBuffer = 3,
+        readonly overlapBuffer = 3
     ) {
         this.graph = MapGraph.createDefaultMapGraph(this.count)
         // this.graph = MapGraph.createDistributedMapGraph(
@@ -271,7 +273,7 @@ export default class GameMap {
     //     return x >= 0 && x < this.width && y >= 0 && y < this.height
     // }
 
-    isInBounds(node: MapNode) {
+    isInBounds(node: MapNode, buffer = this.wallBuffer) {
         const area = node.getArea()
 
         for (let i = 0; i < area.length; i++) {
@@ -280,12 +282,21 @@ export default class GameMap {
             const x = a.x
             const y = a.y
 
-            if (x < 0 || x >= this.width - 1 || y < 0 || y >= this.height - 1) {
+            if (
+                x < 0 + buffer ||
+                x >= this.width - buffer ||
+                y < 0 + buffer ||
+                y >= this.height - buffer
+            ) {
                 return false
             }
         }
 
         return true
+    }
+
+    overlaps(node: MapNode, buffer = this.overlapBuffer) {
+        return this.graph.anyNodeOverlaps(node, buffer)
     }
 
     inflateNode(node: MapNode, center: { x: number; y: number }) {
@@ -338,7 +349,7 @@ export default class GameMap {
             const dir = directions[i]
             if (!dir) continue
             dir.add(node)
-            const overlaps = this.graph.anyNodeOverlaps(node)
+            const overlaps = this.overlaps(node)
             const isInBounds = this.isInBounds(node)
 
             if (overlaps || !isInBounds) {
@@ -361,7 +372,7 @@ export default class GameMap {
 
         const isInBounds = this.isInBounds(randomNode)
 
-        const isNotOverlapping = !this.graph.anyNodeOverlaps(randomNode)
+        const isNotOverlapping = !this.overlaps(randomNode)
 
         if (!isInBounds || !isNotOverlapping) {
             randomNode.translate(-newX2, -newY2)
@@ -377,7 +388,7 @@ export default class GameMap {
 
         node.translate(newX, newY)
 
-        const overlaps = this.graph.anyNodeOverlaps(node)
+        const overlaps = this.overlaps(node)
         const isInBounds = this.isInBounds(node)
 
         if (overlaps || !isInBounds) {
@@ -405,7 +416,7 @@ export default class GameMap {
         this.moveAwayFromNearestEdge(node)
         this.increaseSize(node)
 
-        const overlaps = this.graph.anyNodeOverlaps(node)
+        const overlaps = this.overlaps(node)
         const isInBounds = this.isInBounds(node)
 
         if (overlaps || !isInBounds) {
