@@ -1,5 +1,11 @@
 # game-module
 
+## 0.2.16
+
+### Patch Changes
+
+-   distances
+
 ## 0.2.15
 
 ### Patch Changes

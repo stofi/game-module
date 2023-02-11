@@ -5,10 +5,12 @@ import MapNode from './node'
 
 type MapTileType = 'outside' | 'wall' | 'path' | 'inside'
 
+type MapTileOptional = MapTile | null
+
 export class MapTile {
     parent: MapNode | null = null
+    distanceToInside = Infinity
     constructor(public type: MapTileType, public x: number, public y: number) {}
-
     setType(type: MapTileType) {
         this.type = type
     }
@@ -96,7 +98,8 @@ export default class GameMap {
         seed = 'map',
         readonly wallBuffer = 3,
         readonly overlapBuffer = 3,
-        algorithm: GameMapAlgorithm = 'default'
+        algorithm: GameMapAlgorithm = 'default',
+        readonly maxRoomArea = 100
     ) {
         if (algorithm === 'default') {
             this.graph = MapGraph.createDefaultMapGraph(this.count)
@@ -187,6 +190,26 @@ export default class GameMap {
         this.setWalls(nodes)
         this.setPaths(edges)
         this.setInsides(nodes)
+        this.setDistances(nodes)
+    }
+
+    getTileNeighbors(
+        tile: MapTile
+    ): [MapTileOptional, MapTileOptional, MapTileOptional, MapTileOptional] {
+        const { x, y } = tile
+        return [
+            this.getTile(x, y - 1),
+            this.getTile(x + 1, y),
+            this.getTile(x, y + 1),
+            this.getTile(x - 1, y),
+        ]
+    }
+
+    getTileNeighborsLowestDistance(tile: MapTile): number {
+        const neighbors = this.getTileNeighbors(tile)
+        const distances = neighbors.map((n) => n?.distanceToInside ?? Infinity)
+        const lowest = Math.min(...distances)
+        return lowest
     }
 
     private setInsides(nodes: MapNode[]) {
@@ -249,6 +272,41 @@ export default class GameMap {
                 if (!tile) continue
                 tile.type = 'wall'
             }
+        }
+    }
+
+    setDistances(nodes: MapNode[], passes = 1) {
+        for (let i = 0; i < nodes.length; i++) {
+            const node = nodes[i]
+            if (!node) continue
+            const area = node.getArea()
+
+            for (let j = 0; j < area.length; j++) {
+                const a = area[j]
+                if (!a) continue
+                const x = a.x
+                const y = a.y
+                const tile = this.getTile(x, y)
+                if (!tile) continue
+
+                tile.distanceToInside = tile.type === 'outside' ? Infinity : 0
+            }
+        }
+
+        const pass = () => {
+            for (let i = 0; i < this.tiles.length; i++) {
+                const tile = this.tiles[i]
+                if (!tile) continue
+                if (tile.type === 'inside') continue
+                const lowest = this.getTileNeighborsLowestDistance(tile)
+                if (lowest < tile.distanceToInside) {
+                    tile.distanceToInside = lowest + 1
+                }
+            }
+        }
+
+        for (let i = 0; i < passes; i++) {
+            pass()
         }
     }
 
@@ -322,6 +380,12 @@ export default class GameMap {
     increaseSize(node: MapNode) {
         // choose random direction
         // const direction = Math.floor(Math.random() * 4)
+
+        const area = node.getAreaSize()
+
+        if (area > this.maxRoomArea) {
+            return
+        }
 
         const directions = [
             {
