@@ -1,5 +1,29 @@
 # game-module
 
+## 0.2.20
+
+### Patch Changes
+
+-   serialize
+
+## 0.2.19
+
+### Patch Changes
+
+-   test
+
+## 0.2.18
+
+### Patch Changes
+
+-   test
+
+## 0.2.17
+
+### Patch Changes
+
+-   Change sha256
+
 ## 0.2.16
 
 ### Patch Changes

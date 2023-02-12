@@ -333,17 +333,17 @@ export default class MapGraph {
         return false
     }
 
-    public hash() {
+    public async hash() {
         const nodes = this.getNodes()
         let hash = ''
 
         for (let i = 0; i < nodes.length; i++) {
             const node = nodes[i]
             if (!node) continue
-            hash += node.hash()
+            hash += await node.hash()
         }
 
-        return createHash(hash)
+        return await createHash(hash)
     }
 
     getCrossedConnections() {

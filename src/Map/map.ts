@@ -3,6 +3,7 @@ import { random } from '../seed'
 import MapGraph from './graph'
 import MapNode from './node'
 
+import { v4 } from 'uuid'
 type MapTileType = 'outside' | 'wall' | 'path' | 'inside'
 
 type MapTileOptional = MapTile | null
@@ -10,10 +11,29 @@ type MapTileOptional = MapTile | null
 export class MapTile {
     parent: MapNode | null = null
     distanceToInside = Infinity
+    id: string = v4()
     constructor(public type: MapTileType, public x: number, public y: number) {}
     setType(type: MapTileType) {
         this.type = type
     }
+
+    toJSON(): MapTileJSON {
+        return {
+            type: this.type,
+            x: this.x,
+            y: this.y,
+        }
+    }
+
+    static fromJSON(json: MapTileJSON) {
+        return new MapTile(json.type, json.x, json.y)
+    }
+}
+
+interface MapTileJSON {
+    type: MapTileType
+    x: number
+    y: number
 }
 
 export class MapDualTile {
@@ -81,7 +101,39 @@ export class MapDualTile {
                 : 1,
         ]
     }
+
+    toJSON(): MapDualTileJSON {
+        return {
+            x: this.x,
+            y: this.y,
+            topLeft: this.topLeft?.id ?? null,
+            topRight: this.topRight?.id ?? null,
+            bottomLeft: this.bottomLeft?.id ?? null,
+            bottomRight: this.bottomRight?.id ?? null,
+        }
+    }
+
+    static fromJSON(json: MapDualTileJSON, tiles: MapTile[]) {
+        return new MapDualTile(
+            json.x,
+            json.y,
+            tiles.find((tile) => tile.id === json.topLeft) ?? null,
+            tiles.find((tile) => tile.id === json.topRight) ?? null,
+            tiles.find((tile) => tile.id === json.bottomLeft) ?? null,
+            tiles.find((tile) => tile.id === json.bottomRight) ?? null
+        )
+    }
 }
+
+interface MapDualTileJSON {
+    x: number
+    y: number
+    topLeft: string | null
+    topRight: string | null
+    bottomLeft: string | null
+    bottomRight: string | null
+}
+
 type GameMapAlgorithm = 'default' | 'distributed'
 export default class GameMap {
     graph: MapGraph
@@ -498,8 +550,8 @@ export default class GameMap {
             node.y1 = y1
         }
     }
-    step() {
-        const hash = this.hash()
+    async step() {
+        const hash = await this.hash()
 
         const shuffled = this.shuffleNodes()
 
@@ -513,7 +565,7 @@ export default class GameMap {
             this.graph.removeRandomConnection()
         }
 
-        const newHash = this.hash()
+        const newHash = await this.hash()
 
         if (newHash === hash) {
             this.sameHashCount++
@@ -528,15 +580,14 @@ export default class GameMap {
     getArea() {
         return this.width * this.height
     }
-    hash() {
-        const graph = this.graph
-            .getNodes()
-            .map((node) => node.hash())
-            .join('')
+    async hash() {
+        const graph = await Promise.all(
+            this.graph.getNodes().map((node) => node.hash())
+        ).then((hashes) => hashes.join(''))
 
         const string = graph + `_${this.width}_${this.height}`
 
-        return createHash(string)
+        return await createHash(string)
     }
 
     shuffleNodes() {
@@ -561,15 +612,22 @@ export default class GameMap {
             height,
             count,
             graph: MapGraph.toJSON(graph),
+
+            tiles: map.tiles.map((tile) => tile.toJSON()),
+            dualTiles: map.dualTiles.map((tile) => tile.toJSON()),
         }
     }
 
     static fromJSON(json: string | any) {
         const data = typeof json === 'string' ? JSON.parse(json) : json
 
-        const { width, height, graph, count } = data
+        const { width, height, graph, count, tiles, dualTiles } = data
         const map = new GameMap(width, height, count)
         map.graph = MapGraph.fromJSON(graph)
+        map.tiles = tiles.map((tile: MapTileJSON) => MapTile.fromJSON(tile))
+        map.dualTiles = dualTiles.map((tile: MapDualTileJSON) =>
+            MapDualTile.fromJSON(tile, map.tiles)
+        )
 
         return map
     }
