@@ -182,10 +182,10 @@ export default class MapNode {
         return points.some((p) => node.hasPoint(p.x, p.y))
     }
 
-    public async hash() {
+    public hash() {
         const string = `${this.x},${this.y},${this.x0},${this.y0},${this.x1},${this.y1}`
 
-        return await createHash(string)
+        return createHash(string)
     }
 
     public getEntraceDirectionClosestToNode(node: MapNode) {

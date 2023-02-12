@@ -1,9 +1,5 @@
-export async function createHash(data: string): Promise<string> {
-    return await crypto.subtle
-        .digest('SHA-256', new TextEncoder().encode(data))
-        .then((hash) => {
-            return Array.from(new Uint8Array(hash))
-                .map((b) => b.toString(16).padStart(2, '0'))
-                .join('')
-        })
+import sha256 from 'crypto-js/sha256'
+
+export function createHash(data: string): string {
+    return sha256(data).toString()
 }

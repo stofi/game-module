@@ -580,14 +580,12 @@ export default class GameMap {
     getArea() {
         return this.width * this.height
     }
-    async hash() {
-        const graph = await Promise.all(
-            this.graph.getNodes().map((node) => node.hash())
-        ).then((hashes) => hashes.join(''))
+    hash() {
+        const graph = this.graph.getNodes().map((node) => node.hash())
 
         const string = graph + `_${this.width}_${this.height}`
 
-        return await createHash(string)
+        return createHash(string)
     }
 
     shuffleNodes() {
