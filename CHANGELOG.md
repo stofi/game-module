@@ -1,5 +1,11 @@
 # game-module
 
+## 0.2.22
+
+### Patch Changes
+
+-   remover await
+
 ## 0.2.21
 
 ### Patch Changes
