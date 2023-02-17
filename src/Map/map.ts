@@ -1,393 +1,138 @@
 import { createHash } from '../crypto'
-import { random } from '../seed'
+import { random, setSeed, randomInt } from '../seed'
 import MapGraph from './graph'
 import MapNode from './node'
+import NodeFactory from './NodeFactory'
 
-import { v4 } from 'uuid'
-type MapTileType = 'outside' | 'wall' | 'path' | 'inside'
+import { MapDualTile, MapDualTileJSON } from './MapDualTile'
+import { MapTile, MapTileJSON } from './MapTile'
+import { GameTiles } from './GameTiles'
+export type MapTileType = 'outside' | 'wall' | 'path' | 'inside' | 'door'
 
-type MapTileOptional = MapTile | null
+export type MapTileOptional = MapTile | null
 
-export class MapTile {
-    parent: MapNode | null = null
-    distanceToInside = Infinity
-    id: string = v4()
-    constructor(public type: MapTileType, public x: number, public y: number) {}
-    setType(type: MapTileType) {
-        this.type = type
-    }
-
-    toJSON(): MapTileJSON {
-        return {
-            type: this.type,
-            x: this.x,
-            y: this.y,
-        }
-    }
-
-    static fromJSON(json: MapTileJSON) {
-        return new MapTile(json.type, json.x, json.y)
-    }
-}
-
-interface MapTileJSON {
-    type: MapTileType
-    x: number
-    y: number
-}
-
-export class MapDualTile {
-    parent: MapNode | null = null
-    constructor(
-        public x: number,
-        public y: number,
-        public topLeft: MapTile | null,
-        public topRight: MapTile | null,
-        public bottomLeft: MapTile | null,
-        public bottomRight: MapTile | null
-    ) {}
-    // number of combinations
-    // 5^4 = 625
-
-    types() {
-        return [
-            this.topLeft?.type ?? 'outside',
-            this.topRight?.type ?? 'outside',
-            this.bottomLeft?.type ?? 'outside',
-            this.bottomRight?.type ?? 'outside',
-        ]
-    }
-
-    hasOneWalls() {
-        return this.types().filter((type) => type === 'wall').length > 0
-    }
-
-    hasOnePaths() {
-        return this.types().filter((type) => type === 'path').length > 0
-    }
-
-    hasOneInsides() {
-        return this.types().filter((type) => type === 'inside').length > 0
-    }
-
-    hasOneOutsides() {
-        return this.types().filter((type) => type === 'outside').length > 0
-    }
-    hasTwoWalls() {
-        return this.types().filter((type) => type === 'wall').length > 1
-    }
-
-    hasTwoPaths() {
-        return this.types().filter((type) => type === 'path').length > 1
-    }
-
-    hasTwoInsides() {
-        return this.types().filter((type) => type === 'inside').length > 1
-    }
-
-    hasTwoOutsides() {
-        return this.types().filter((type) => type === 'outside').length > 1
-    }
-
-    marchingSquares() {
-        return [
-            this.topLeft?.type === 'outside' || this.topLeft === null ? 0 : 1,
-            this.topRight?.type === 'outside' || this.topRight === null ? 0 : 1,
-            this.bottomLeft?.type === 'outside' || this.bottomLeft === null
-                ? 0
-                : 1,
-            this.bottomRight?.type === 'outside' || this.bottomRight === null
-                ? 0
-                : 1,
-        ]
-    }
-
-    toJSON(): MapDualTileJSON {
-        return {
-            x: this.x,
-            y: this.y,
-            topLeft: this.topLeft?.id ?? null,
-            topRight: this.topRight?.id ?? null,
-            bottomLeft: this.bottomLeft?.id ?? null,
-            bottomRight: this.bottomRight?.id ?? null,
-        }
-    }
-
-    static fromJSON(json: MapDualTileJSON, tiles: MapTile[]) {
-        return new MapDualTile(
-            json.x,
-            json.y,
-            tiles.find((tile) => tile.id === json.topLeft) ?? null,
-            tiles.find((tile) => tile.id === json.topRight) ?? null,
-            tiles.find((tile) => tile.id === json.bottomLeft) ?? null,
-            tiles.find((tile) => tile.id === json.bottomRight) ?? null
-        )
-    }
-}
-
-interface MapDualTileJSON {
-    x: number
-    y: number
-    topLeft: string | null
-    topRight: string | null
-    bottomLeft: string | null
-    bottomRight: string | null
-}
-
-type GameMapAlgorithm = 'default' | 'distributed'
 export default class GameMap {
     graph: MapGraph
     index = 0
     sameHashCount = 0
-    tiles: MapTile[] = []
-    dualTiles: MapDualTile[] = []
+    gametiles: GameTiles
     covered = 0
+    count = 0
+    maxCount: number
+    get tiles() {
+        return this.gametiles.tiles
+    }
 
     constructor(
         readonly width: number,
         readonly height: number,
-        readonly count: number,
+        count: number,
         seed = 'map',
         readonly wallBuffer = 3,
         readonly overlapBuffer = 3,
-        algorithm: GameMapAlgorithm = 'default',
         readonly maxRoomArea = 100
     ) {
-        if (algorithm === 'default') {
-            this.graph = MapGraph.createDefaultMapGraph(this.count)
-        } else {
-            this.graph = MapGraph.createDistributedMapGraph(
-                this.count,
-                this.width,
-                this.height,
-                seed
-            )
+        setSeed(seed)
+        this.graph = new MapGraph([])
+        this.gametiles = new GameTiles(width, height)
+
+        // how many 10x10 squares fit in the map?
+        const maxWidth = Math.floor(width / 10)
+        const maxHeight = Math.floor(height / 10)
+        const maxCount = maxWidth * maxHeight
+
+        console.log('maxWidth', maxWidth)
+        console.log('maxHeight', maxHeight)
+        console.log('maxCount', maxCount)
+        console.log('count', count)
+
+        this.maxCount = maxCount
+        this.count = Math.min(count, maxCount)
+        this.count = Math.max(this.count, 2)
+        if (this.count < 2) {
+            throw new Error(`Map count is too small: ${count}`)
         }
-        this.graph.setSeed(seed)
-        const center = this.graph.getCenter()
+        if (this.count > maxCount) {
+            throw new Error(`Map count is too large: ${count}`)
+        }
 
-        this.graph.translate(
-            Math.floor(width / 2 - center.x),
-            Math.floor(height / 2 - center.y)
-        )
+        const grid: Array<MapNode | null>[] = new Array(maxWidth)
+            .fill(null)
+            .map(() => new Array(maxHeight).fill(null))
 
-        // set the tiles
-        for (let i = 0; i < this.width; i++) {
-            for (let j = 0; j < this.height; j++) {
-                const tile = new MapTile('outside', i, j)
-                this.tiles.push(tile)
+        for (let i = 0; i < maxWidth; i++) {
+            for (let j = 0; j < maxHeight; j++) {
+                const x = i * 10
+                const y = j * 10
+
+                const node = NodeFactory.createRandomNode(x, y)
+
+                if (
+                    grid[i] &&
+                    grid[i] !== undefined &&
+                    grid[i]![j] !== undefined
+                )
+                    grid[i]![j] = node
+
+                this.graph.addNode(node)
             }
         }
-    }
-    setSeed(seed: string) {
-        this.graph.setSeed(seed)
-    }
 
-    makeLine(
-        { x: x1, y: y1 }: { x: number; y: number },
-        { x: x2, y: y2 }: { x: number; y: number }
-    ): { x: number; y: number }[] {
-        const points: { x: number; y: number }[] = []
-        const xDiff = x2 - x1
-        const yDiff = y2 - y1
-        const xDir = xDiff > 0 ? 1 : -1
-        const yDir = yDiff > 0 ? 1 : -1
-        const xSteps = Math.abs(xDiff)
-        const ySteps = Math.abs(yDiff)
-        const steps = Math.max(xSteps, ySteps)
-
-        for (let i = 0; i < steps; i++) {
-            const x = x1 + Math.round((xDir * i * xSteps) / steps)
-            const y = y1 + Math.round((yDir * i * ySteps) / steps)
-            points.push({ x, y })
+        // add connections in a grid
+        for (let i = 0; i < maxWidth; i++) {
+            const row = grid[i]
+            if (!row) continue
+            for (let j = 0; j < maxHeight; j++) {
+                const node = row[j]
+                if (!node) continue
+                const row1 = grid[i + 1]
+                const right = row1 ? row1[j] : null
+                const bottom = row[j + 1] ? row[j + 1] : null
+                const left = row[j - 1] ? row[j - 1] : null
+                const top = row1 ? row1[j - 1] : null
+                if (right) node.connections.push(right)
+                if (bottom) node.connections.push(bottom)
+                if (left) node.connections.push(left)
+                if (top) node.connections.push(top)
+            }
         }
 
-        return points
-    }
-
-    manhattanLine(
-        { x: x1, y: y1 }: { x: number; y: number },
-        { x: x2, y: y2 }: { x: number; y: number }
-    ): { x: number; y: number }[] {
-        const center = {
-            x: x1 + Math.floor((x2 - x1) / 2),
-            y: y1 + Math.floor((y2 - y1) / 2),
+        const shuffled = this.graph.getNodes().sort(() => 0.5 - random())
+        let toRemove = maxCount - this.count
+        console.log(this.graph.getNodes().map((n) => n.connections))
+        for (let i = 0; i < shuffled.length; i++) {
+            const node = shuffled[i]
+            if (!node) continue
+            if (toRemove <= 0) break
+            const connections = node.connections.map((c) => c)
+            this.graph.removeNode(node)
+            toRemove--
+            if (!this.graph.isTraversable()) {
+                // for each pair of nodes in connections, if not graph.nodesAreConnected then add connection
+                for (let i = 0; i < connections.length; i++) {
+                    const a = connections[i]
+                    if (!a) continue
+                    for (let j = i + 1; j < connections.length; j++) {
+                        const b = connections[j]
+                        if (!b) continue
+                        if (!this.graph.nodesAreConnected(a, b)) {
+                            a.connections.push(b)
+                            b.connections.push(a)
+                        }
+                    }
+                }
+            }
         }
 
-        const firstCorner = {
-            x: center.x,
-            y: y1,
-        }
-
-        const secondCorner = {
-            x: center.x,
-            y: y2,
-        }
-        const firstLine = this.makeLine({ x: x1, y: y1 }, firstCorner)
-        const secondLine = this.makeLine(firstCorner, secondCorner)
-        const thirdLine = this.makeLine(secondCorner, { x: x2, y: y2 })
-
-        return [...firstLine, ...secondLine, ...thirdLine]
+        this.setTiles()
     }
 
     setTiles() {
         const nodes = this.graph.getNodes()
         const edges = this.graph.getEdges()
 
-        for (const tile of this.tiles) {
-            tile.type = 'outside'
-            tile.parent = null
-        }
-
-        this.setWalls(nodes)
-        this.setPaths(edges)
-        this.setInsides(nodes)
-        this.setDistances(nodes)
+        this.gametiles.setTiles(nodes, edges)
     }
-
-    getTileNeighbors(
-        tile: MapTile
-    ): [MapTileOptional, MapTileOptional, MapTileOptional, MapTileOptional] {
-        const { x, y } = tile
-        return [
-            this.getTile(x, y - 1),
-            this.getTile(x + 1, y),
-            this.getTile(x, y + 1),
-            this.getTile(x - 1, y),
-        ]
-    }
-
-    getTileNeighborsLowestDistance(tile: MapTile): number {
-        const neighbors = this.getTileNeighbors(tile)
-        const distances = neighbors.map((n) => n?.distanceToInside ?? Infinity)
-        const lowest = Math.min(...distances)
-        return lowest
-    }
-
-    private setInsides(nodes: MapNode[]) {
-        for (let i = 0; i < nodes.length; i++) {
-            const node = nodes[i]
-            if (!node) continue
-            const area = node.getArea()
-
-            for (let j = 0; j < area.length; j++) {
-                const a = area[j]
-                if (!a) continue
-                const x = a.x
-                const y = a.y
-                const tile = this.getTile(x, y)
-                if (!tile || tile.type === 'wall') continue
-                tile.type = 'inside'
-                tile.parent = node
-            }
-        }
-    }
-
-    private setPaths(edges: { node1: MapNode; node2: MapNode | undefined }[]) {
-        for (let i = 0; i < edges.length; i++) {
-            const edge = edges[i]
-            if (!edge) continue
-            const node1 = edge.node1
-            const node2 = edge.node2
-            if (!node1 || !node2) continue
-            const entrance1 = node1.getEntraceDirectionClosestToNode(node2)
-            const entrance2 = node2.getEntraceDirectionClosestToNode(node1)
-            const entrancePos1 = node1.getEntranceCoordinates(entrance1)
-            const entrancePos2 = node2.getEntranceCoordinates(entrance2)
-
-            const points = this.manhattanLine(entrancePos1, entrancePos2)
-
-            for (let j = 0; j < points.length; j++) {
-                const point = points[j]
-                if (!point) continue
-                const x = point.x
-                const y = point.y
-                const tile = this.getTile(x, y)
-                if (!tile) continue
-                tile.type = 'path'
-            }
-        }
-    }
-
-    private setWalls(nodes: MapNode[]) {
-        for (let i = 0; i < nodes.length; i++) {
-            const node = nodes[i]
-            if (!node) continue
-            const walls = node.getWalls()
-
-            for (let j = 0; j < walls.length; j++) {
-                const wall = walls[j]
-                if (!wall) continue
-                const x = wall.x
-                const y = wall.y
-                const tile = this.getTile(x, y)
-                if (!tile) continue
-                tile.type = 'wall'
-            }
-        }
-    }
-
-    setDistances(nodes: MapNode[], passes = 1) {
-        for (let i = 0; i < nodes.length; i++) {
-            const node = nodes[i]
-            if (!node) continue
-            const area = node.getArea()
-
-            for (let j = 0; j < area.length; j++) {
-                const a = area[j]
-                if (!a) continue
-                const x = a.x
-                const y = a.y
-                const tile = this.getTile(x, y)
-                if (!tile) continue
-
-                tile.distanceToInside = tile.type === 'outside' ? Infinity : 0
-            }
-        }
-
-        const pass = () => {
-            for (let i = 0; i < this.tiles.length; i++) {
-                const tile = this.tiles[i]
-                if (!tile) continue
-                if (tile.type === 'inside') continue
-                const lowest = this.getTileNeighborsLowestDistance(tile)
-                if (lowest < tile.distanceToInside) {
-                    tile.distanceToInside = lowest + 1
-                }
-            }
-        }
-
-        for (let i = 0; i < passes; i++) {
-            pass()
-        }
-    }
-
-    setDualTiles() {
-        this.dualTiles = []
-
-        for (let i = 0; i < this.width + 1; i++) {
-            for (let j = 0; j < this.height + 1; j++) {
-                this.dualTiles.push(
-                    new MapDualTile(
-                        i,
-                        j,
-                        this.getTile(i - 1, j - 1),
-                        this.getTile(i, j - 1),
-                        this.getTile(i - 1, j),
-                        this.getTile(i, j)
-                    )
-                )
-            }
-        }
-    }
-
-    getTile(x: number, y: number) {
-        return this.tiles.find((tile) => tile.x === x && tile.y === y) ?? null
-    }
-
-    // isInBounds(x: number, y: number) {
-    //     return x >= 0 && x < this.width && y >= 0 && y < this.height
-    // }
 
     isInBounds(node: MapNode, buffer = this.wallBuffer) {
         const area = node.getArea()
@@ -415,72 +160,6 @@ export default class GameMap {
         return this.graph.anyNodeOverlaps(node, buffer)
     }
 
-    inflateNode(node: MapNode, center: { x: number; y: number }) {
-        const xDiff = node.x - center.x
-        const yDiff = node.y - center.y
-
-        const newX = Math.ceil(xDiff) > 0 ? 1 : -1
-        const newY = Math.ceil(yDiff) > 0 ? 1 : -1
-
-        node.translate(newX, newY)
-
-        if (!this.isInBounds(node)) {
-            node.translate(-newX, -newY)
-        }
-    }
-
-    increaseSize(node: MapNode) {
-        // choose random direction
-        // const direction = Math.floor(Math.random() * 4)
-
-        const area = node.getAreaSize()
-
-        if (area > this.maxRoomArea) {
-            return
-        }
-
-        const directions = [
-            {
-                add: (node: MapNode) => node.addTop(),
-                remove: (node: MapNode) => node.removeTop(),
-            },
-            {
-                add: (node: MapNode) => node.addRight(),
-                remove: (node: MapNode) => node.removeRight(),
-            },
-            {
-                add: (node: MapNode) => node.addBottom(),
-                remove: (node: MapNode) => node.removeBottom(),
-            },
-            {
-                add: (node: MapNode) => node.addLeft(),
-                remove: (node: MapNode) => node.removeLeft(),
-            },
-        ]
-
-        // shuffle directions
-        for (let i = directions.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1))
-            let di = directions[i]
-            let dj = directions[j]
-            if (!di || !dj) continue
-            ;[di, dj] = [dj, di]
-        }
-
-        for (let i = 0; i < directions.length; i++) {
-            const dir = directions[i]
-            if (!dir) continue
-            dir.add(node)
-            const overlaps = this.overlaps(node)
-            const isInBounds = this.isInBounds(node)
-
-            if (overlaps || !isInBounds) {
-                dir.remove(node)
-            } else {
-                break
-            }
-        }
-    }
     moveAwayFromNearestNode(randomNode: MapNode) {
         const closeNode = this.graph.getClosestNode(randomNode)
         if (!closeNode) return
@@ -518,54 +197,15 @@ export default class GameMap {
         }
     }
 
-    iterate(node: MapNode) {
-        const graphCenter = this.graph.getCenter()
+    step() {
+        const hash = this.hash()
 
-        const mapCenter = {
-            x: Math.floor(this.width / 2),
-            y: Math.floor(this.height / 2),
+        if (!this.graph.isTraversable()) {
+            console.log('add connection')
+            this.graph.addRandomConnection()
         }
-
-        const center = {
-            x: Math.floor((graphCenter.x + mapCenter.x) / 2),
-            y: Math.floor((graphCenter.y + mapCenter.y) / 2),
-        }
-
-        const { x, y, x0, x1, y0, y1 } = node
-
-        // this.inflateNode(node, center)
-        this.moveAwayFromNearestNode(node)
-        this.moveAwayFromNearestEdge(node)
-        this.increaseSize(node)
-
-        const overlaps = this.overlaps(node)
-        const isInBounds = this.isInBounds(node)
-
-        if (overlaps || !isInBounds) {
-            node.x = x
-            node.y = y
-            node.x0 = x0
-            node.x1 = x1
-            node.y0 = y0
-            node.y1 = y1
-        }
-    }
-    async step() {
-        const hash = await this.hash()
-
-        const shuffled = this.shuffleNodes()
-
-        for (let i = 0; i < shuffled.length; i++) {
-            const node = shuffled[i]
-            if (!node) continue
-            this.iterate(node)
-        }
-
-        if (random() > 0.8) {
-            this.graph.removeRandomConnection()
-        }
-
-        const newHash = await this.hash()
+        console.log('step')
+        const newHash = this.hash()
 
         if (newHash === hash) {
             this.sameHashCount++
@@ -575,7 +215,6 @@ export default class GameMap {
         this.covered = this.graph.getTotalArea() / this.getArea()
         this.graph.findMostDistancedNodes()
         this.setTiles()
-        this.setDualTiles()
     }
     getArea() {
         return this.width * this.height
@@ -592,7 +231,7 @@ export default class GameMap {
         const nodes = this.graph.getNodes()
 
         for (let i = nodes.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1))
+            const j = randomInt(0, i + 1)
             let ni = nodes[i]
             let nj = nodes[j]
             if (!ni || !nj) continue
@@ -603,29 +242,34 @@ export default class GameMap {
     }
 
     static toJSON(map: GameMap) {
-        const { width, height, graph, count } = map
+        const { width, height, graph, count, maxCount } = map
 
         return {
             width,
             height,
             count,
+            maxCount,
             graph: MapGraph.toJSON(graph),
 
-            tiles: map.tiles.map((tile) => tile.toJSON()),
-            dualTiles: map.dualTiles.map((tile) => tile.toJSON()),
+            tiles: map.gametiles.tiles.map((tile) => tile.toJSON()),
+            dualTiles: map.gametiles.dualTiles.map((tile) => tile.toJSON()),
         }
     }
 
     static fromJSON(json: string | any) {
         const data = typeof json === 'string' ? JSON.parse(json) : json
 
-        const { width, height, graph, count, tiles, dualTiles } = data
+        const { width, height, graph, count, tiles, dualTiles, maxCount } = data
         const map = new GameMap(width, height, count)
         map.graph = MapGraph.fromJSON(graph)
-        map.tiles = tiles.map((tile: MapTileJSON) => MapTile.fromJSON(tile))
-        map.dualTiles = dualTiles.map((tile: MapDualTileJSON) =>
+        map.gametiles = new GameTiles(width, height)
+        map.gametiles.tiles = tiles.map((tile: MapTileJSON) =>
+            MapTile.fromJSON(tile)
+        )
+        map.gametiles.dualTiles = dualTiles.map((tile: MapDualTileJSON) =>
             MapDualTile.fromJSON(tile, map.tiles)
         )
+        map.maxCount = maxCount
 
         return map
     }

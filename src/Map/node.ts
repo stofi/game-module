@@ -1,38 +1,54 @@
 import { createHash } from '../crypto'
 import { v4 } from 'uuid'
 
-interface EntranceI {
+export interface EntranceI {
+    side: 'top' | 'bottom' | 'left' | 'right'
     i: number
 }
-type EntracesT = {
-    top: EntranceI
-    bottom: EntranceI
-    left: EntranceI
-    right: EntranceI
-}
+
 import { randomInt } from '../seed'
 
+export interface NodeData {
+    position: {
+        x: number
+        y: number
+    }
+    size?: {
+        width: number
+        height: number
+    }
+    content: any
+}
+
 export default class MapNode {
-    x0 = 0
-    y0 = 0
-    x1 = 1
-    y1 = 1
     start = false
     end = false
     id = v4()
     index = 0
-    entrances: EntracesT
+    entrances: EntranceI[] = []
+    data: NodeData[] = []
     constructor(
         public x: number,
         public y: number,
-        public connections: MapNode[]
+        public connections: MapNode[],
+        public x0 = 0,
+        public y0 = 0,
+        public x1 = 1,
+        public y1 = 1,
+        entrances: EntranceI[] = []
     ) {
-        this.entrances = {
-            top: { i: 1 },
-            bottom: { i: 1 },
-            left: { i: 1 },
-            right: { i: 1 },
+        this.entrances = entrances
+        if (!this.entrances || this.entrances.length === 0) {
+            throw new Error('no entrances')
         }
+    }
+
+    get width() {
+        return this.x1 - this.x0
+    }
+
+    get height() {
+        return this.y1 - this.y0
     }
 
     public translate(x: number, y: number) {
@@ -85,16 +101,7 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.y0++
-        } else {
-            this.randomizeEntrances()
         }
-    }
-
-    private randomizeEntrances() {
-        this.entrances.left.i = randomInt(1, this.y1 - this.y0 - 1)
-        this.entrances.right.i = randomInt(1, this.y1 - this.y0 - 1)
-        this.entrances.top.i = randomInt(1, this.x1 - this.x0 - 1)
-        this.entrances.bottom.i = randomInt(1, this.x1 - this.x0 - 1)
     }
 
     public addBottom() {
@@ -102,8 +109,6 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.y1--
-        } else {
-            this.randomizeEntrances()
         }
     }
 
@@ -112,8 +117,6 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.x0++
-        } else {
-            this.randomizeEntrances()
         }
     }
 
@@ -122,8 +125,6 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.x1--
-        } else {
-            this.randomizeEntrances()
         }
     }
 
@@ -132,8 +133,6 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.y0--
-        } else {
-            this.randomizeEntrances()
         }
     }
 
@@ -142,8 +141,6 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.y1++
-        } else {
-            this.randomizeEntrances()
         }
     }
 
@@ -152,8 +149,6 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.x0--
-        } else {
-            this.randomizeEntrances()
         }
     }
 
@@ -162,8 +157,6 @@ export default class MapNode {
 
         if (this.areaSizeIsLessThanOne()) {
             this.x1++
-        } else {
-            this.randomizeEntrances()
         }
     }
 
@@ -188,47 +181,52 @@ export default class MapNode {
         return createHash(string)
     }
 
-    public getEntraceDirectionClosestToNode(node: MapNode) {
-        const x = this.x - node.x
-        const y = this.y - node.y
-
-        if (Math.abs(x) > Math.abs(y)) {
-            return x > 0 ? 'left' : 'right'
-        } else {
-            return y > 0 ? 'top' : 'bottom'
+    public getEntranceCoordinates(e: EntranceI) {
+        const i = e.i
+        let x = this.x
+        let y = this.y
+        switch (e.side) {
+            case 'top':
+                x += this.x0 + i
+                y += this.y0 - 1
+                break
+            case 'bottom':
+                x += this.x1 - i
+                y += this.y1 //- 1
+                break
+            case 'left':
+                x += this.x0 - 1
+                y += this.y0 + i
+                break
+            case 'right':
+                x += this.x1 //- 1
+                y += this.y1 - i
+                break
         }
+
+        return { x, y }
     }
 
-    public getEntranceCoordinates(
-        direction: 'top' | 'bottom' | 'left' | 'right'
-    ) {
-        const w = this.x1 - this.x0
-        const h = this.y1 - this.y0
+    public getEntraceClosestToNode(node: MapNode): { x: number; y: number } {
+        const coordinates = this.entrances.map((e) => {
+            return this.getEntranceCoordinates(e)
+        })
 
-        const i = this.entrances[direction].i
+        const distances = coordinates.map((c) => ({
+            x: c.x - node.x,
+            y: c.y - node.y,
+        }))
+        const distancesSquared = distances.map((d) => d.x * d.x + d.y * d.y)
+        const minDistance = Math.min(...distancesSquared)
+        const minDistanceIndex = distancesSquared.indexOf(minDistance)
 
-        switch (direction) {
-            case 'top':
-                return {
-                    x: this.x + this.x0 + Math.floor(i / h),
-                    y: this.y + this.y0,
-                }
-            case 'bottom':
-                return {
-                    x: this.x + this.x0 + Math.floor(i / h),
-                    y: this.y + this.y1,
-                }
-            case 'left':
-                return {
-                    x: this.x + this.x0,
-                    y: this.y + this.y0 + Math.floor(i / w),
-                }
-            case 'right':
-                return {
-                    x: this.x + this.x1,
-                    y: this.y + this.y0 + Math.floor(i / w),
-                }
-        }
+        return coordinates[minDistanceIndex] ?? coordinates[0] ?? { x: 0, y: 0 }
+    }
+
+    public getEntrances() {
+        return this.entrances.map((e) => {
+            return this.getEntranceCoordinates(e)
+        })
     }
 
     static toJSON(node: MapNode) {
@@ -243,12 +241,22 @@ export default class MapNode {
             start: node.start,
             end: node.end,
             connections: node.connections.map((c) => c.id),
+            entrances: node.entrances,
         }
     }
 
     static fromJSON(json: string | any) {
         const data = typeof json === 'string' ? JSON.parse(json) : json
-        const node = new MapNode(data.x, data.y, [])
+        const node = new MapNode(
+            data.x,
+            data.y,
+            [],
+            data.x0,
+            data.y0,
+            data.x1,
+            data.y1,
+            data.entrances
+        )
         node.id = data.id
         node.x0 = data.x0
         node.y0 = data.y0
@@ -256,6 +264,7 @@ export default class MapNode {
         node.y1 = data.y1
         node.start = data.start
         node.end = data.end
+        node.entrances = data.entrances
 
         return node
     }

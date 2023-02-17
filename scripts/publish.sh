@@ -12,6 +12,6 @@ pnpm changeset
 pnpm changeset version
 pnpm run build
 git add .
-git commit -m $1
+git commit -m "$1"
 pnpm changeset publish
 git push

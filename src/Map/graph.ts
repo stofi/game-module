@@ -1,7 +1,7 @@
 import { createHash } from '../crypto'
 import MapNode from './node'
 
-import { setSeed, random } from '../seed'
+import { random } from '../seed'
 
 export default class MapGraph {
     startNode: MapNode | null = null
@@ -18,7 +18,7 @@ export default class MapGraph {
         return null
     }
 
-    areaOccupied(x: number, y: number) {
+    placeOccupied(x: number, y: number) {
         for (let i = 0; i < this.nodes.length; i++) {
             const node = this.nodes[i]
             if (!node) continue
@@ -29,126 +29,16 @@ export default class MapGraph {
 
         return false
     }
-
-    static createDefaultMapGraph(count: number) {
-        const width = Math.floor(Math.sqrt(count))
-        const height = Math.ceil(count / width)
-        const nodes = []
-
-        for (let i = 0; i < width; i++) {
-            for (let j = 0; j < height; j++) {
-                const node = new MapNode(i * 8, j * 8, [])
-                node.x1 = 4
-                node.y1 = 4
-                nodes.push(node)
-            }
-        }
-
-        // connect nodes in a grid
-        for (let i = 0; i < width; i++) {
-            for (let j = 0; j < height; j++) {
-                if (i > 0) {
-                    const source = nodes[i * height + j]
-                    const target = nodes[(i - 1) * height + j]
-                    if (source && target) {
-                        source.connections.push(target)
-                    }
-                }
-
-                if (i < width - 1) {
-                    const source = nodes[i * height + j]
-                    const target = nodes[(i + 1) * height + j]
-                    if (source && target) {
-                        source.connections.push(target)
-                    }
-                }
-
-                if (j > 0) {
-                    const source = nodes[i * height + j]
-                    const target = nodes[i * height + j - 1]
-                    if (source && target) {
-                        source.connections.push(target)
-                    }
-                }
-
-                if (j < height - 1) {
-                    const source = nodes[i * height + j]
-                    const target = nodes[i * height + j + 1]
-                    if (source && target) {
-                        source.connections.push(target)
-                    }
+    areaOccupied(x0: number, y0: number, width: number, height: number) {
+        for (let x = x0; x < x0 + width; x++) {
+            for (let y = y0; y < y0 + height; y++) {
+                if (this.placeOccupied(x, y)) {
+                    return true
                 }
             }
         }
 
-        return new MapGraph(nodes)
-    }
-
-    static createDistributedMapGraph(
-        count: number,
-        width: number,
-        height: number,
-        seed?: string,
-        padding = 1
-    ) {
-        setSeed(seed || 'map')
-        const nodes = []
-        // evenly distribute nodes in 2d grid space
-        // calculate column and row count plus padding
-        const columnCount = Math.ceil(Math.sqrt(count)) + 1
-        const rowCount = Math.ceil(count / columnCount) + 1
-
-        const columnSpacing = Math.ceil(width / columnCount)
-        const rowSpacing = Math.ceil(height / rowCount)
-
-        for (let i = 0; i < columnCount; i++) {
-            for (let j = 0; j < rowCount; j++) {
-                const node = new MapNode(
-                    i * columnSpacing + columnSpacing,
-                    j * rowSpacing + rowSpacing,
-                    []
-                )
-                node.x1 = 2
-                node.y1 = 2
-                if (nodes.length === count) break
-                nodes.push(node)
-            }
-        }
-
-        // connect nodes in a grid
-        for (let i = 0; i < columnCount; i++) {
-            for (let j = 0; j < rowCount; j++) {
-                if (i > 0) {
-                    const source = nodes[i * rowCount + j]
-                    const target = nodes[(i - 1) * rowCount + j]
-                    if (source && target) source.connections.push(target)
-                }
-
-                if (i < columnCount - 1) {
-                    const source = nodes[i * rowCount + j]
-                    const target = nodes[(i + 1) * rowCount + j]
-                    if (source && target) source.connections.push(target)
-                }
-
-                if (j > 0) {
-                    const source = nodes[i * rowCount + j]
-                    const target = nodes[i * rowCount + j - 1]
-                    if (source && target) source.connections.push(target)
-                }
-
-                if (j < rowCount - 1) {
-                    const source = nodes[i * rowCount + j]
-                    const target = nodes[i * rowCount + j + 1]
-                    if (source && target) source.connections.push(target)
-                }
-            }
-        }
-
-        return new MapGraph(nodes)
-    }
-
-    setSeed(seed: string) {
-        setSeed(seed)
+        return false
     }
 
     constructor(public nodes: MapNode[]) {}
@@ -163,8 +53,8 @@ export default class MapGraph {
     }
 
     public removeConnection(node1: MapNode, node2: MapNode) {
-        node1.connections.splice(node1.connections.indexOf(node2), 1)
-        node2.connections.splice(node2.connections.indexOf(node1), 1)
+        node1.connections = node1.connections.filter((n) => n.id !== node2.id)
+        node2.connections = node2.connections.filter((n) => n.id !== node1.id)
     }
 
     public removeNode(node: MapNode) {
@@ -280,6 +170,32 @@ export default class MapGraph {
 
         return result
     }
+    public nodesAreConnected(node1: MapNode, node2: MapNode) {
+        const visited = new Set()
+        const stack = [node1]
+
+        while (stack.length > 0) {
+            const node = stack.pop()
+            if (!node) continue
+
+            if (visited.has(node)) {
+                continue
+            }
+            visited.add(node)
+
+            if (node === node2) {
+                return true
+            }
+
+            for (let i = 0; i < node.connections.length; i++) {
+                const n = node.connections[i]
+                if (!n) continue
+                stack.push(n)
+            }
+        }
+
+        return false
+    }
 
     public translate(x: number, y: number) {
         for (let i = 0; i < this.nodes.length; i++) {
@@ -315,6 +231,20 @@ export default class MapGraph {
         }
 
         this.removeConnection(edge.node1, edge.node2)
+    }
+
+    public addRandomConnection() {
+        const nodes = this.getNodes()
+        const node1 = nodes[Math.floor(random() * nodes.length)]
+        const node2 = nodes[Math.floor(random() * nodes.length)]
+
+        if (!node1 || !node2) return
+
+        if (this.nodesAreConnected(node1, node2)) {
+            return
+        }
+
+        this.addConnection(node1, node2)
     }
 
     public anyNodeOverlaps(node: MapNode, buffer = 0) {
