@@ -22,6 +22,26 @@ export class MapTile {
     static fromJSON(json: MapTileJSON) {
         return new MapTile(json.type, json.x, json.y)
     }
+
+    toString() {
+        // export type MapTileType = 'outside' | 'wall' | 'path' | 'inside' | 'door'
+
+        switch (this.type) {
+            case 'wall':
+                return ' '
+            case 'inside':
+                return this.parent?.start ? 'S' : this.parent?.end ? 'E' : ' '
+            case 'outside':
+                return '■'
+            case 'path':
+                return '.'
+            case 'door':
+                return '_'
+
+            default:
+                return ' '
+        }
+    }
 }
 export interface MapTileJSON {
     type: MapTileType

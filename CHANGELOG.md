@@ -1,5 +1,17 @@
 # game-module
 
+## 0.4.0
+
+### Minor Changes
+
+-   rework generation
+
+## 0.3.0
+
+### Minor Changes
+
+-   Big change in generation
+
 ## 0.2.22
 
 ### Patch Changes

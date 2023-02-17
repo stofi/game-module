@@ -96,4 +96,13 @@ export class MapDualTile {
             tiles.find((tile) => tile.id === json.bottomRight) ?? null
         )
     }
+
+    toString(): [string, string, string, string] {
+        return [
+            this.topLeft?.toString() ?? 'x',
+            this.topRight?.toString() ?? 'x',
+            this.bottomLeft?.toString() ?? 'x',
+            this.bottomRight?.toString() ?? 'x',
+        ]
+    }
 }
