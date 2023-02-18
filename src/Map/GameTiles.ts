@@ -175,6 +175,7 @@ export class GameTiles {
                 const tile = this.getTile(x, y)
                 if (!tile) continue
                 tile.type = 'wall'
+                tile.parent = node
             }
         }
     }

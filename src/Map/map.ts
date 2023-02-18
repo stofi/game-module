@@ -99,7 +99,6 @@ export default class GameMap {
 
         const shuffled = this.graph.getNodes().sort(() => 0.5 - random())
         let toRemove = maxCount - this.count
-        console.log(this.graph.getNodes().map((n) => n.connections))
         for (let i = 0; i < shuffled.length; i++) {
             const node = shuffled[i]
             if (!node) continue
@@ -201,8 +200,11 @@ export default class GameMap {
         const hash = this.hash()
 
         if (!this.graph.isTraversable()) {
-            console.log('add connection')
+            console.log('not traversable, adding connection')
             this.graph.addRandomConnection()
+        } else {
+            console.log('traversable, removing connection')
+            this.graph.removeRandomConnection()
         }
         console.log('step')
         const newHash = this.hash()

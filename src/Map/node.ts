@@ -1,6 +1,6 @@
 import { createHash } from '../crypto'
 import { v4 } from 'uuid'
-
+import type { NodeTemplateType } from './NodeFactory'
 export interface EntranceI {
     side: 'top' | 'bottom' | 'left' | 'right'
     i: number
@@ -27,6 +27,7 @@ export default class MapNode {
     index = 0
     entrances: EntranceI[] = []
     data: NodeData[] = []
+    type?: NodeTemplateType
     constructor(
         public x: number,
         public y: number,
@@ -242,6 +243,7 @@ export default class MapNode {
             end: node.end,
             connections: node.connections.map((c) => c.id),
             entrances: node.entrances,
+            type: node.type,
         }
     }
 
@@ -265,6 +267,7 @@ export default class MapNode {
         node.start = data.start
         node.end = data.end
         node.entrances = data.entrances
+        node.type = data.type
 
         return node
     }

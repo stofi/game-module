@@ -1,5 +1,11 @@
 # game-module
 
+## 0.4.1
+
+### Patch Changes
+
+-   Add node types
+
 ## 0.4.0
 
 ### Minor Changes
