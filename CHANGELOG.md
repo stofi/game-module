@@ -1,5 +1,11 @@
 # game-module
 
+## 0.4.2
+
+### Patch Changes
+
+-   Add level templates
+
 ## 0.4.1
 
 ### Patch Changes
