@@ -25,7 +25,12 @@ export default class NodeFactory {
     static nodeTemplates: Record<NodeTemplateType, NodeTemplate> = {
         '3x3': {
             type: '3x3',
-            data: [],
+            data: [
+                {
+                    position: { x: 1, y: 1 },
+                    type: 'enemy',
+                },
+            ],
             width: 3,
             height: 3,
             maxXOffset: 5,
@@ -39,7 +44,16 @@ export default class NodeFactory {
         },
         '3x5': {
             type: '3x5',
-            data: [],
+            data: [
+                {
+                    position: { x: 1, y: 1 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 1, y: 3 },
+                    type: 'enemy',
+                },
+            ],
             width: 3,
             height: 5,
             maxXOffset: 5,
@@ -55,7 +69,16 @@ export default class NodeFactory {
         },
         '5x3': {
             type: '5x3',
-            data: [],
+            data: [
+                {
+                    position: { x: 1, y: 1 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 3, y: 1 },
+                    type: 'enemy',
+                },
+            ],
             width: 5,
             height: 3,
             maxXOffset: 3,
@@ -71,7 +94,20 @@ export default class NodeFactory {
         },
         '5x5': {
             type: '5x5',
-            data: [],
+            data: [
+                {
+                    position: { x: 1, y: 1 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 3, y: 1 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 1, y: 3 },
+                    type: 'enemy',
+                },
+            ],
             width: 5,
             height: 5,
             maxXOffset: 3,
@@ -89,7 +125,32 @@ export default class NodeFactory {
         },
         '5x7': {
             type: '5x7',
-            data: [],
+            data: [
+                {
+                    position: { x: 1, y: 1 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 3, y: 1 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 1, y: 3 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 3, y: 3 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 1, y: 5 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 3, y: 5 },
+                    type: 'enemy',
+                },
+            ],
             width: 5,
             height: 7,
             maxXOffset: 3,
@@ -109,7 +170,32 @@ export default class NodeFactory {
         },
         '7x5': {
             type: '7x5',
-            data: [],
+            data: [
+                {
+                    position: { x: 1, y: 1 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 3, y: 1 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 5, y: 1 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 1, y: 3 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 3, y: 3 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 5, y: 3 },
+                    type: 'enemy',
+                },
+            ],
             width: 7,
             height: 5,
             maxXOffset: 1,
@@ -129,7 +215,44 @@ export default class NodeFactory {
         },
         '7x7': {
             type: '7x7',
-            data: [],
+            data: [
+                {
+                    position: { x: 1, y: 1 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 3, y: 1 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 5, y: 1 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 1, y: 3 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 3, y: 3 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 5, y: 3 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 1, y: 5 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 3, y: 5 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 5, y: 5 },
+                    type: 'enemy',
+                },
+            ],
             width: 7,
             height: 7,
             maxXOffset: 1,
@@ -151,6 +274,86 @@ export default class NodeFactory {
         },
     }
 
+    static levelToNodeTemplateChance: Record<
+        number,
+        Record<NodeTemplateType, number>
+    > = {
+        1: {
+            '3x3': 2,
+            '3x5': 1,
+            '5x3': 1,
+            '5x5': 0,
+            '7x5': 0,
+            '5x7': 0,
+            '7x7': 0,
+        },
+        3: {
+            '3x3': 2,
+            '3x5': 2,
+            '5x3': 2,
+            '5x5': 1,
+            '5x7': 0,
+            '7x5': 0,
+            '7x7': 0,
+        },
+        5: {
+            '3x3': 1,
+            '3x5': 2,
+            '5x3': 2,
+            '5x5': 2,
+            '5x7': 1,
+            '7x5': 1,
+            '7x7': 0,
+        },
+        8: {
+            '3x3': 0,
+            '3x5': 1,
+            '5x3': 1,
+            '5x5': 4,
+            '5x7': 2,
+            '7x5': 2,
+            '7x7': 1,
+        },
+        10: {
+            '3x3': 0,
+            '3x5': 0,
+            '5x3': 0,
+            '5x5': 2,
+            '5x7': 2,
+            '7x5': 2,
+            '7x7': 2,
+        },
+    }
+
+    static chooseNodeTemplate(level: number): NodeTemplateType {
+        // find nearest lower level
+        const levelToUse = parseInt(
+            Object.keys(NodeFactory.levelToNodeTemplateChance).find(
+                (key) => level <= parseInt(key)
+            ) ?? '1'
+        ) as keyof typeof NodeFactory.levelToNodeTemplateChance
+
+        const nodeTemplates = NodeFactory.levelToNodeTemplateChance[levelToUse]
+
+        if (!nodeTemplates) {
+            throw new Error('No node templates found for level ' + level)
+        }
+
+        const types = Object.entries(nodeTemplates).flatMap(([type, chance]) =>
+            Array(chance)
+                .fill(0)
+                .map(() => type as NodeTemplateType)
+        )
+
+        const type = types[randomInt(0, types.length - 1)]
+
+        if (!type) {
+            throw new Error('No node templates found for level ' + level)
+        }
+
+        return type
+    }
+
     static createNode(type: NodeTemplateType, x: number, y: number): MapNode {
         const { data, width, height, entrances, maxXOffset, maxYOffset } =
             NodeFactory.nodeTemplates[type]
@@ -167,6 +370,11 @@ export default class NodeFactory {
             NodeFactory.nodeTemplates
         ) as NodeTemplateType[]
         const type = types[randomInt(0, types.length - 1)] as NodeTemplateType
+        return NodeFactory.createNode(type, x, y)
+    }
+
+    static createRandomNodeForLevel(level: number, x: number, y: number) {
+        const type = NodeFactory.chooseNodeTemplate(level)
         return NodeFactory.createNode(type, x, y)
     }
 }

@@ -8,6 +8,8 @@ export interface EntranceI {
 
 import { randomInt } from '../seed'
 
+export type NodeDataType = 'object' | 'enemy' | 'item' | 'trap' | 'empty'
+
 export interface NodeData {
     position: {
         x: number
@@ -17,7 +19,7 @@ export interface NodeData {
         width: number
         height: number
     }
-    content: any
+    type: NodeDataType
 }
 
 export default class MapNode {
@@ -244,6 +246,7 @@ export default class MapNode {
             connections: node.connections.map((c) => c.id),
             entrances: node.entrances,
             type: node.type,
+            data: node.data,
         }
     }
 
@@ -268,6 +271,7 @@ export default class MapNode {
         node.end = data.end
         node.entrances = data.entrances
         node.type = data.type
+        node.data = data.data
 
         return node
     }

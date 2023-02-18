@@ -27,10 +27,8 @@ export default class GameMap {
         readonly width: number,
         readonly height: number,
         count: number,
-        seed = 'map',
-        readonly wallBuffer = 3,
-        readonly overlapBuffer = 3,
-        readonly maxRoomArea = 100
+        public seed = 'map',
+        public level = 1
     ) {
         setSeed(seed)
         this.graph = new MapGraph([])
@@ -65,7 +63,8 @@ export default class GameMap {
                 const x = i * 10
                 const y = j * 10
 
-                const node = NodeFactory.createRandomNode(x, y)
+                const node = NodeFactory.createRandomNodeForLevel(level, x, y)
+                // const node = NodeFactory.createRandomNode(x, y)
 
                 if (
                     grid[i] &&
@@ -133,7 +132,7 @@ export default class GameMap {
         this.gametiles.setTiles(nodes, edges)
     }
 
-    isInBounds(node: MapNode, buffer = this.wallBuffer) {
+    isInBounds(node: MapNode, buffer = 1) {
         const area = node.getArea()
 
         for (let i = 0; i < area.length; i++) {
@@ -155,7 +154,7 @@ export default class GameMap {
         return true
     }
 
-    overlaps(node: MapNode, buffer = this.overlapBuffer) {
+    overlaps(node: MapNode, buffer = 1) {
         return this.graph.anyNodeOverlaps(node, buffer)
     }
 
@@ -252,17 +251,28 @@ export default class GameMap {
             count,
             maxCount,
             graph: MapGraph.toJSON(graph),
-
+            level: map.level,
             tiles: map.gametiles.tiles.map((tile) => tile.toJSON()),
             dualTiles: map.gametiles.dualTiles.map((tile) => tile.toJSON()),
+            seed: map.seed,
         }
     }
 
     static fromJSON(json: string | any) {
         const data = typeof json === 'string' ? JSON.parse(json) : json
 
-        const { width, height, graph, count, tiles, dualTiles, maxCount } = data
-        const map = new GameMap(width, height, count)
+        const {
+            width,
+            height,
+            graph,
+            count,
+            tiles,
+            dualTiles,
+            maxCount,
+            level,
+            seed,
+        } = data
+        const map = new GameMap(width, height, count, seed, level)
         map.graph = MapGraph.fromJSON(graph)
         map.gametiles = new GameTiles(width, height)
         map.gametiles.tiles = tiles.map((tile: MapTileJSON) =>
