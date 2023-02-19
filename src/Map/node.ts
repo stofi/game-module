@@ -10,16 +10,25 @@ import { randomInt } from '../seed'
 
 export type NodeDataType = 'object' | 'enemy' | 'item' | 'trap' | 'empty'
 
-export interface NodeData {
-    position: {
-        x: number
-        y: number
-    }
+export interface NodeDataTemplate {
+    position:
+        | {
+              x: number
+              y: number
+          }
+        | { x: number; y: number }[]
+
     size?: {
         width: number
         height: number
     }
     type: NodeDataType
+}
+export interface NodeData extends NodeDataTemplate {
+    position: {
+        x: number
+        y: number
+    }
 }
 
 export default class MapNode {

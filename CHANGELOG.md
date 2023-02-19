@@ -1,5 +1,11 @@
 # game-module
 
+## 0.4.3
+
+### Patch Changes
+
+-   Fix node data
+
 ## 0.4.2
 
 ### Patch Changes

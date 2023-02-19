@@ -1,5 +1,5 @@
 import MapNode from './node'
-import type { EntranceI, NodeData } from './node'
+import type { EntranceI, NodeData, NodeDataTemplate } from './node'
 import { randomInt } from '../seed'
 export type NodeTemplateType =
     | '3x3'
@@ -13,7 +13,7 @@ export type NodeTemplateType =
 
 interface NodeTemplate {
     type: NodeTemplateType
-    data: NodeData[]
+    data: NodeDataTemplate[]
     width: number
     height: number
     entrances: EntranceI[]
@@ -27,7 +27,12 @@ export default class NodeFactory {
             type: '3x3',
             data: [
                 {
-                    position: { x: 1, y: 1 },
+                    position: [
+                        { x: 0, y: 0 },
+                        { x: 2, y: 0 },
+                        { x: 0, y: 2 },
+                        { x: 2, y: 2 },
+                    ],
                     type: 'enemy',
                 },
             ],
@@ -105,6 +110,10 @@ export default class NodeFactory {
                 },
                 {
                     position: { x: 1, y: 3 },
+                    type: 'enemy',
+                },
+                {
+                    position: { x: 3, y: 3 },
                     type: 'enemy',
                 },
             ],
@@ -358,9 +367,23 @@ export default class NodeFactory {
         const { data, width, height, entrances, maxXOffset, maxYOffset } =
             NodeFactory.nodeTemplates[type]
         const node = new MapNode(x, y, [], 0, 0, width, height, entrances)
-        node.x += randomInt(0, maxXOffset)
-        node.y += randomInt(0, maxYOffset)
-        node.data = data
+        const xOffset = randomInt(0, maxXOffset)
+        const yOffset = randomInt(0, maxYOffset)
+        node.x += xOffset
+        node.y += yOffset
+        node.data = data.map((d) => {
+            const position = (
+                Array.isArray(d.position)
+                    ? d.position[randomInt(0, d.position.length - 1)]
+                    : d.position
+            ) as { x: number; y: number }
+            const m: NodeData = {
+                ...d,
+                position,
+            }
+            return m
+        })
+
         node.type = type
         return node
     }
