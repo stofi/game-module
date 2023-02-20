@@ -41,25 +41,56 @@ export class GameTiles {
         { x: x1, y: y1 }: { x: number; y: number },
         { x: x2, y: y2 }: { x: number; y: number }
     ): { x: number; y: number }[] {
-        const center = {
-            x: x1 + Math.floor((x2 - x1) / 2),
-            y: y1 + Math.floor((y2 - y1) / 2),
+        /**
+         * 1. Find the dimension D with the largest difference
+         * 2. Find the center coordinate C of the line
+         * 3. Find edge coordinates E1 and E2
+         */
+
+        const dimensionD = Math.abs(x2 - x1) < Math.abs(y2 - y1) ? 'x' : 'y'
+
+        if (dimensionD === 'x') {
+            const coordinateC = y1 + Math.floor((y2 - y1) / 2)
+            const e1 = { x: x1, y: coordinateC }
+            const e2 = { x: x2, y: coordinateC }
+
+            const firstLine = this.makeLine({ x: x1, y: y1 }, e1)
+            const secondLine = this.makeLine(e1, e2)
+            const thirdLine = this.makeLine(e2, { x: x2, y: y2 })
+
+            return [...firstLine, ...secondLine, ...thirdLine]
+        } else {
+            const coordinateC = x1 + Math.floor((x2 - x1) / 2)
+            const e1 = { x: coordinateC, y: y1 }
+            const e2 = { x: coordinateC, y: y2 }
+
+            const firstLine = this.makeLine({ x: x1, y: y1 }, e1)
+
+            const secondLine = this.makeLine(e1, e2)
+            const thirdLine = this.makeLine(e2, { x: x2, y: y2 })
+
+            return [...firstLine, ...secondLine, ...thirdLine]
         }
 
-        const firstCorner = {
-            x: center.x,
-            y: y1,
-        }
+        // const center = {
+        //     x: x1 + Math.floor((x2 - x1) / 2),
+        //     y: y1 + Math.floor((y2 - y1) / 2),
+        // }
 
-        const secondCorner = {
-            x: center.x,
-            y: y2,
-        }
-        const firstLine = this.makeLine({ x: x1, y: y1 }, firstCorner)
-        const secondLine = this.makeLine(firstCorner, secondCorner)
-        const thirdLine = this.makeLine(secondCorner, { x: x2, y: y2 })
+        // const firstCorner = {
+        //     x: center.x,
+        //     y: y1,
+        // }
 
-        return [...firstLine, ...secondLine, ...thirdLine]
+        // const secondCorner = {
+        //     x: center.x,
+        //     y: y2,
+        // }
+        // const firstLine = this.makeLine({ x: x1, y: y1 }, firstCorner)
+        // const secondLine = this.makeLine(firstCorner, secondCorner)
+        // const thirdLine = this.makeLine(secondCorner, { x: x2, y: y2 })
+
+        // return [...firstLine, ...secondLine, ...thirdLine]
     }
     getTile(x: number, y: number) {
         return this.tiles.find((tile) => tile.x === x && tile.y === y) ?? null
@@ -116,28 +147,22 @@ export class GameTiles {
             const original2 = { ...entrance2 }
             if (!entrance1 || !entrance2) continue
             // const points = this.makeLine(node1, node2)
-            if (
-                Math.abs(entrance1.x - entrance2.x) >
-                Math.abs(entrance1.y - entrance2.y)
-            ) {
-                if (entrance1.x > entrance2.x) {
-                    entrance1.x -= 1
-                    entrance2.x += 1
-                }
-                if (entrance1.x < entrance2.x) {
-                    entrance1.x += 1
-                    entrance2.x -= 1
-                }
-            } else {
-                if (entrance1.y > entrance2.y) {
-                    entrance1.y -= 1
-                    entrance2.y += 1
-                }
-                if (entrance1.y < entrance2.y) {
-                    entrance1.y += 1
-                    entrance2.y -= 1
-                }
-            }
+
+            let en1 = this.getTile(entrance1.x, entrance1.y)
+            if (en1) en1.type = 'path'
+            let en2 = this.getTile(entrance2.x, entrance2.y)
+            if (en2) en2.type = 'path'
+
+            offsetEntrance(entrance1, node1, 1)
+            offsetEntrance(entrance2, node2, 1)
+
+            en1 = this.getTile(entrance1.x, entrance1.y)
+            if (en1) en1.type = 'path'
+            en2 = this.getTile(entrance2.x, entrance2.y)
+            if (en2) en2.type = 'path'
+
+            offsetEntrance(entrance1, node1, 1)
+            offsetEntrance(entrance2, node2, 1)
 
             const points = this.manhattanLine(entrance1, entrance2)
 
@@ -153,11 +178,28 @@ export class GameTiles {
             const s = this.getTile(entrance1.x, entrance1.y)
             if (s) s.type = 'path'
             const e = this.getTile(entrance2.x, entrance2.y)
-            if (e) e.type = 'path'
+            if (en1) en1.type = 'path'
             const s1 = this.getTile(original1.x, original1.y)
             if (s1) s1.type = 'path'
             const e1 = this.getTile(original2.x, original2.y)
             if (e1) e1.type = 'path'
+        }
+
+        function offsetEntrance(
+            e: { x: number; y: number },
+            n: MapNode,
+            o: number
+        ) {
+            if (e.x === n.x + n.x0 - 1) {
+                e.x -= o
+            } else if (e.x === n.x + n.x1 - 1) {
+                e.x += o
+            } else if (e.y === n.y + n.y0 - 1) {
+                e.y -= o
+            } else if (e.y === n.y + n.y1 - 1) {
+                e.y += o
+            }
+            return e
         }
     }
 

@@ -397,7 +397,7 @@ export default class NodeFactory {
     }
 
     static createRandomNodeForLevel(level: number, x: number, y: number) {
-        const type = NodeFactory.chooseNodeTemplate(level)
+        const type = NodeFactory.chooseNodeTemplate(level / 2)
         return NodeFactory.createNode(type, x, y)
     }
 }
