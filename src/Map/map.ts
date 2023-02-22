@@ -28,7 +28,8 @@ export default class GameMap {
         readonly height: number,
         count: number,
         public seed = 'map',
-        public level = 1
+        public level = 1,
+        skipTiles = false
     ) {
         setSeed(seed)
         this.graph = new MapGraph([])
@@ -121,6 +122,8 @@ export default class GameMap {
                 }
             }
         }
+
+        if (!skipTiles) this.setTiles()
     }
 
     setTiles() {
@@ -269,7 +272,7 @@ export default class GameMap {
             level,
             seed,
         } = data
-        const map = new GameMap(width, height, count, seed, level)
+        const map = new GameMap(width, height, count, seed, level, true)
         map.graph = MapGraph.fromJSON(graph)
         map.gametiles = new GameTiles(width, height)
         map.gametiles.tiles = tiles.map((tile: MapTileJSON) =>
