@@ -6,6 +6,7 @@ export class MapTile {
     parent: MapNode | null = null
     distanceToInside = Infinity
     id: string = v4()
+    connectedNodes: MapNode[] = []
     constructor(public type: MapTileType, public x: number, public y: number) {}
     setType(type: MapTileType) {
         this.type = type

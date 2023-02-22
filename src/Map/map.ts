@@ -121,8 +121,6 @@ export default class GameMap {
                 }
             }
         }
-
-        this.setTiles()
     }
 
     setTiles() {
@@ -215,7 +213,6 @@ export default class GameMap {
         }
         this.covered = this.graph.getTotalArea() / this.getArea()
         this.graph.findMostDistancedNodes()
-        this.setTiles()
     }
     getArea() {
         return this.width * this.height
@@ -291,4 +288,3 @@ export default class GameMap {
         this.gametiles.dispose()
     }
 }
-

@@ -135,6 +135,26 @@ export class GameTiles {
     }
 
     setPaths(edges: { node1: MapNode; node2: MapNode | undefined }[]) {
+        const setTile = (
+            tile: MapTile | null,
+            edge: { node1: MapNode; node2: MapNode | undefined }
+        ) => {
+            if (!tile) return
+            tile.type = 'path'
+            if (
+                edge.node1 &&
+                !tile.connectedNodes.find((n) => n.id === edge.node1.id)
+            ) {
+                tile.connectedNodes.push(edge.node1)
+            }
+            if (
+                edge.node2 &&
+                !tile.connectedNodes.find((t) => t.id === edge.node2?.id)
+            ) {
+                tile.connectedNodes.push(edge.node2)
+            }
+        }
+
         for (let i = 0; i < edges.length; i++) {
             const edge = edges[i]
             if (!edge) continue
@@ -149,17 +169,17 @@ export class GameTiles {
             // const points = this.makeLine(node1, node2)
 
             let en1 = this.getTile(entrance1.x, entrance1.y)
-            if (en1) en1.type = 'path'
+            setTile(en1, edge)
             let en2 = this.getTile(entrance2.x, entrance2.y)
-            if (en2) en2.type = 'path'
+            setTile(en2, edge)
 
             offsetEntrance(entrance1, node1, 1)
             offsetEntrance(entrance2, node2, 1)
 
             en1 = this.getTile(entrance1.x, entrance1.y)
-            if (en1) en1.type = 'path'
+            setTile(en1, edge)
             en2 = this.getTile(entrance2.x, entrance2.y)
-            if (en2) en2.type = 'path'
+            setTile(en2, edge)
 
             offsetEntrance(entrance1, node1, 1)
             offsetEntrance(entrance2, node2, 1)
@@ -172,17 +192,16 @@ export class GameTiles {
                 const x = point.x
                 const y = point.y
                 const tile = this.getTile(x, y)
-                if (!tile) continue
-                tile.type = 'path'
+                setTile(tile, edge)
             }
             const s = this.getTile(entrance1.x, entrance1.y)
-            if (s) s.type = 'path'
+            setTile(s, edge)
             const e = this.getTile(entrance2.x, entrance2.y)
-            if (en1) en1.type = 'path'
+            setTile(e, edge)
             const s1 = this.getTile(original1.x, original1.y)
-            if (s1) s1.type = 'path'
+            setTile(s1, edge)
             const e1 = this.getTile(original2.x, original2.y)
-            if (e1) e1.type = 'path'
+            setTile(e1, edge)
         }
 
         function offsetEntrance(

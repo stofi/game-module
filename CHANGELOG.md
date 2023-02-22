@@ -1,5 +1,11 @@
 # game-module
 
+## 0.4.6
+
+### Patch Changes
+
+-   Optimize tiles
+
 ## 0.4.5
 
 ### Patch Changes
