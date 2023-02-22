@@ -1,5 +1,11 @@
 # game-module
 
+## 0.4.5
+
+### Patch Changes
+
+-   Add dispose method
+
 ## 0.4.4
 
 ### Patch Changes
