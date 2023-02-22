@@ -284,4 +284,10 @@ export default class MapNode {
 
         return node
     }
+
+    dispose() {
+        this.connections = []
+        this.entrances = []
+        this.data = []
+    }
 }

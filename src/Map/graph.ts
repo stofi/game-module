@@ -474,4 +474,11 @@ export default class MapGraph {
 
         return map
     }
+
+    dispose() {
+        this.nodes.forEach((node) => {
+            if (!node) return
+            node.dispose()
+        })
+    }
 }

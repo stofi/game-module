@@ -323,28 +323,16 @@ export class GameTiles {
             }
         }
 
-        // for (let i = 0; i < this.width + 1; i++) {
-        //     for (let j = 0; j < this.height + 1; j++) {
-        //         const tile = this.getDualTile(i, j)
-        //         if (!tile) continue
-        //         str += tile.toString()[0]
-        //         str += tile.toString()[2]
-        //     }
-        //     str += '\n'
-        //     for (let j = 0; j < this.height + 1; j++) {
-        //         const tile = this.getDualTile(i, j)
-        //         if (!tile) continue
-        //         str += tile.toString()[1]
-        //         str += tile.toString()[3]
-        //     }
-        //     str += '\n'
-        // }
-
         return output.map((r) => r.reverse().join('')).join('\n')
     }
     getDualTile(i: number, j: number) {
         return (
             this.dualTiles.find((tile) => tile.x === i && tile.y === j) ?? null
         )
+    }
+
+    dispose() {
+        this.tiles = []
+        this.dualTiles = []
     }
 }

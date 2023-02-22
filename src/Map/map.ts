@@ -285,6 +285,10 @@ export default class GameMap {
 
         return map
     }
+
+    dispose() {
+        this.graph.dispose()
+        this.gametiles.dispose()
+    }
 }
 
-//
