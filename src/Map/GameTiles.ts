@@ -167,6 +167,20 @@ export class GameTiles {
             const original2 = { ...entrance2 }
             if (!entrance1 || !entrance2) continue
             // const points = this.makeLine(node1, node2)
+            // if the entracnes share the same x or y coordinate, we can just make a straight line
+            if (entrance1.x === entrance2.x || entrance1.y === entrance2.y) {
+                const points = this.makeLine(entrance1, entrance2)
+                for (let j = 0; j < points.length; j++) {
+                    const point = points[j]
+                    if (!point) continue
+                    const x = point.x
+                    const y = point.y
+                    const tile = this.getTile(x, y)
+                    if (!tile || tile.type === 'wall') continue
+                    setTile(tile, edge)
+                }
+                continue
+            }
 
             let en1 = this.getTile(entrance1.x, entrance1.y)
             setTile(en1, edge)
