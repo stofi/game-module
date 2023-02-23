@@ -1,5 +1,11 @@
 # game-module
 
+## 0.4.11
+
+### Patch Changes
+
+-   fix path
+
 ## 0.4.10
 
 ### Patch Changes

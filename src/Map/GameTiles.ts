@@ -174,17 +174,6 @@ export class GameTiles {
             if (!entrance1 || !entrance2) continue
             // const points = this.makeLine(node1, node2)
             // if the entracnes share the same x or y coordinate, we can just make a straight line
-            if (entrance1.x === entrance2.x || entrance1.y === entrance2.y) {
-                const points = this.makeLine(entrance1, entrance2)
-                for (let j = 0; j < points.length; j++) {
-                    const point = points[j]
-                    if (!point) continue
-                    const x = point.x
-                    const y = point.y
-                    setTile(x, y, edge)
-                }
-                continue
-            }
 
             setTile(entrance1.x, entrance1.y, edge, 'door')
             setTile(entrance2.x, entrance2.y, edge, 'door')
@@ -197,6 +186,17 @@ export class GameTiles {
 
             // offsetEntrance(entrance1, node1, 1)
             // offsetEntrance(entrance2, node2, 1)
+            if (entrance1.x === entrance2.x || entrance1.y === entrance2.y) {
+                const points = this.makeLine(entrance1, entrance2)
+                for (let j = 0; j < points.length; j++) {
+                    const point = points[j]
+                    if (!point) continue
+                    const x = point.x
+                    const y = point.y
+                    setTile(x, y, edge)
+                }
+                continue
+            }
 
             const points = this.manhattanLine(entrance1, entrance2)
 
