@@ -171,8 +171,6 @@ export class GameTiles {
             if (!node1 || !node2) continue
             const entrance1 = node1.getEntraceClosestToNode(node2)
             const entrance2 = node2.getEntraceClosestToNode(node1)
-            const original1 = { ...entrance1 }
-            const original2 = { ...entrance2 }
             if (!entrance1 || !entrance2) continue
             // const points = this.makeLine(node1, node2)
             // if the entracnes share the same x or y coordinate, we can just make a straight line
@@ -188,8 +186,8 @@ export class GameTiles {
                 continue
             }
 
-            setTile(entrance1.x, entrance1.y, edge)
-            setTile(entrance2.x, entrance2.y, edge)
+            setTile(entrance1.x, entrance1.y, edge, 'door')
+            setTile(entrance2.x, entrance2.y, edge, 'door')
 
             offsetEntrance(entrance1, node1, 1)
             offsetEntrance(entrance2, node2, 1)

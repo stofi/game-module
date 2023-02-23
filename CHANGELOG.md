@@ -1,5 +1,11 @@
 # game-module
 
+## 0.4.10
+
+### Patch Changes
+
+-   fix
+
 ## 0.4.9
 
 ### Patch Changes
