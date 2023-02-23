@@ -199,6 +199,7 @@ export default class GameMap {
     step() {
         const hash = this.hash()
 
+        this.graph.removeDoubleConnections()
         if (!this.graph.isTraversable()) {
             console.log('not traversable, adding connection')
             this.graph.addRandomConnection()

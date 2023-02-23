@@ -203,7 +203,7 @@ export default class MapNode {
                 y += this.y0 - 1
                 break
             case 'bottom':
-                x += this.x1 - i
+                x += this.x1 - i - 1
                 y += this.y1 //- 1
                 break
             case 'left':
@@ -212,14 +212,18 @@ export default class MapNode {
                 break
             case 'right':
                 x += this.x1 //- 1
-                y += this.y1 - i
+                y += this.y1 - i - 1
                 break
         }
 
         return { x, y }
     }
 
-    public getEntraceClosestToNode(node: MapNode): { x: number; y: number } {
+    public getEntraceClosestToNode(node: MapNode): {
+        x: number
+        y: number
+        entrance: EntranceI | undefined
+    } {
         const coordinates = this.entrances.map((e) => {
             return this.getEntranceCoordinates(e)
         })
@@ -232,7 +236,11 @@ export default class MapNode {
         const minDistance = Math.min(...distancesSquared)
         const minDistanceIndex = distancesSquared.indexOf(minDistance)
 
-        return coordinates[minDistanceIndex] ?? coordinates[0] ?? { x: 0, y: 0 }
+        return {
+            x: coordinates[minDistanceIndex]?.x ?? 0,
+            y: coordinates[minDistanceIndex]?.y ?? 0,
+            entrance: this.entrances[minDistanceIndex] ?? undefined,
+        }
     }
 
     public getEntrances() {

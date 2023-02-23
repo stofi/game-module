@@ -1,4 +1,4 @@
-import MapNode from './node'
+import MapNode, { EntranceI } from './node'
 import { MapDualTile } from './MapDualTile'
 import { MapTile } from './MapTile'
 import { MapTileOptional } from './map'
@@ -136,11 +136,18 @@ export class GameTiles {
 
     setPaths(edges: { node1: MapNode; node2: MapNode | undefined }[]) {
         const setTile = (
-            tile: MapTile | null,
-            edge: { node1: MapNode; node2: MapNode | undefined }
+            x: number,
+            y: number,
+            edge: { node1: MapNode; node2: MapNode | undefined },
+            type: MapTile['type'] = 'path'
         ) => {
+            const tile = this.getTile(x, y)
             if (!tile) return
-            tile.type = 'path'
+            if (tile.type === 'wall') return
+            if (tile.type === 'inside') return
+            if (tile.type === 'door') return
+
+            tile.type = type
             if (
                 edge.node1 &&
                 !tile.connectedNodes.find((n) => n.id === edge.node1.id)
@@ -153,6 +160,7 @@ export class GameTiles {
             ) {
                 tile.connectedNodes.push(edge.node2)
             }
+            return tile
         }
 
         for (let i = 0; i < edges.length; i++) {
@@ -175,28 +183,22 @@ export class GameTiles {
                     if (!point) continue
                     const x = point.x
                     const y = point.y
-                    const tile = this.getTile(x, y)
-                    if (!tile || tile.type === 'wall') continue
-                    setTile(tile, edge)
+                    setTile(x, y, edge)
                 }
                 continue
             }
 
-            let en1 = this.getTile(entrance1.x, entrance1.y)
-            setTile(en1, edge)
-            let en2 = this.getTile(entrance2.x, entrance2.y)
-            setTile(en2, edge)
+            setTile(entrance1.x, entrance1.y, edge)
+            setTile(entrance2.x, entrance2.y, edge)
 
             offsetEntrance(entrance1, node1, 1)
             offsetEntrance(entrance2, node2, 1)
 
-            en1 = this.getTile(entrance1.x, entrance1.y)
-            setTile(en1, edge)
-            en2 = this.getTile(entrance2.x, entrance2.y)
-            setTile(en2, edge)
+            setTile(entrance1.x, entrance1.y, edge, 'door')
+            setTile(entrance2.x, entrance2.y, edge, 'door')
 
-            offsetEntrance(entrance1, node1, 1)
-            offsetEntrance(entrance2, node2, 1)
+            // offsetEntrance(entrance1, node1, 1)
+            // offsetEntrance(entrance2, node2, 1)
 
             const points = this.manhattanLine(entrance1, entrance2)
 
@@ -205,34 +207,38 @@ export class GameTiles {
                 if (!point) continue
                 const x = point.x
                 const y = point.y
-                const tile = this.getTile(x, y)
-                setTile(tile, edge)
+                setTile(x, y, edge)
             }
-            const s = this.getTile(entrance1.x, entrance1.y)
-            setTile(s, edge)
-            const e = this.getTile(entrance2.x, entrance2.y)
-            setTile(e, edge)
-            const s1 = this.getTile(original1.x, original1.y)
-            setTile(s1, edge)
-            const e1 = this.getTile(original2.x, original2.y)
-            setTile(e1, edge)
         }
 
         function offsetEntrance(
-            e: { x: number; y: number },
+            e: { x: number; y: number; entrance: EntranceI | undefined },
             n: MapNode,
             o: number
         ) {
-            if (e.x === n.x + n.x0 - 1) {
-                e.x -= o
-            } else if (e.x === n.x + n.x1 - 1) {
-                e.x += o
-            } else if (e.y === n.y + n.y0 - 1) {
-                e.y -= o
-            } else if (e.y === n.y + n.y1 - 1) {
-                e.y += o
+            if (!e.entrance) {
+                if (e.x === n.x + n.x0 - 1) {
+                    e.x -= o
+                } else if (e.x === n.x + n.x1 - 1) {
+                    e.x += o
+                } else if (e.y === n.y + n.y0 - 1) {
+                    e.y -= o
+                } else if (e.y === n.y + n.y1 - 1) {
+                    e.y += o
+                }
+                return e
+            } else {
+                if (e.entrance.side === 'left') {
+                    e.x -= o
+                } else if (e.entrance.side === 'right') {
+                    e.x += o
+                } else if (e.entrance.side === 'top') {
+                    e.y -= o
+                } else if (e.entrance.side === 'bottom') {
+                    e.y += o
+                }
+                return e
             }
-            return e
         }
     }
 
@@ -317,10 +323,10 @@ export class GameTiles {
         }
 
         this.setWalls(nodes)
-        // this.setDoors(nodes)
-        this.setPaths(edges)
         this.setInsides(nodes)
         this.setDistances(nodes)
+        this.setPaths(edges)
+        this.setInsides(nodes)
         this.setDualTiles()
     }
 

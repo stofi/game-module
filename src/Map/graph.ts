@@ -334,6 +334,27 @@ export default class MapGraph {
         this.removeConnection(connection.node1, connection.node2)
     }
 
+    removeDoubleConnections() {
+        const connections = this.getEdges()
+
+        for (let i = 0; i < connections.length; i++) {
+            const connection = connections[i]
+            if (!connection) continue
+            if (!connection.node1 || !connection.node2) continue
+
+            if (
+                this.nodesAreConnected(connection.node1, connection.node2) &&
+                this.nodesAreConnected(connection.node2, connection.node1) &&
+                this.isTraversableWithoutConnection(
+                    connection.node1,
+                    connection.node2
+                )
+            ) {
+                this.removeConnection(connection.node1, connection.node2)
+            }
+        }
+    }
+
     public getTotalArea() {
         let totalArea = 0
 
